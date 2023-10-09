@@ -1,0 +1,91 @@
+global: #Global configuration
+  namespace: Development #Environment type, divided into two types: formal product and informal development
+  env_name: 790338d7 #Environmental name, name of multiple environment under the informal environment
+  local_ip: 127.0.0.1 #Local IP
+  coroutine: #Corporate configuration
+    enable: false #FALSE is a non -use coroutine.
+  threadmodel:
+    default:
+      - instance_name: default_instance #Thread model example name
+        io_handle_type: separate #Run mode, Seperate/Merge Two Select One
+        io_thread_num: 2
+        handle_thread_num: 2
+server: #Server configuration
+    app: test #Business application name
+    server: helloworld #Business service name
+    admin_port: 8888 #Manage the command of the service port
+    admin_ip: 127.0.0.1 #Manage the command service to monitor the IP address
+    registry_name: polarismesh #Service name registration name service
+    service: #There are multiple services provided by business services.
+      - name: trpc.test.helloworld.Greeter #Service's route name
+        network: tcp #Network monitor type TCP UDP
+        ip: 127.0.0.1 #Binding IP
+        port: 10001
+        protocol: trpc #Application layer protocol TRPC http
+        threadmodel_type: default #The thread model type used
+        threadmodel_instance_name: default_instance #Thread model instance name used
+client: #client configuration
+    service: #Call the configuration of the back end service
+      - name: trpc.test.helloworld.Router #The service name is transferred, the same configuration file is unique
+        target: trpc.test.helloworld.Router #The name of the adjusted service routing
+        selector_name: polarismesh #The name service used by the routing, the direct connection is Direct
+        namespace: Development #The namespace of the service route name
+        protocol: trpc #protocol
+        timeout: 1000 #Call timeout time, ms
+        network: tcp #Network Type
+        conn_type: long #Connection type, long connection/short connection
+plugins: #Plug -in configuration
+    registry: #Service registration configuration
+        polarismesh: #Configuration of polarismesh Registration Service
+            heartbeat_interval: 3000 #Name registration service Heartbeat is reported to the reported interval
+            heartbeat_timeout: 1000 #Name service heartbeat time overtime
+            service:
+              - instance_id: ca1eb5279a7d4e714eb9597215b53c21437b6592 #Required for service registration id
+                name: trpc.test.helloworld.Greeter
+                namespace: Development #Environment type, divided into two types: formal product and informal development
+                token: 2e263b2d4fce4f7a8f4b3377cc487ba7 #Token required for service registration
+    selector: #Route Select Configuration
+        polarismesh: #The configuration of the polarismeshway Selection
+            global:
+                api:
+                    location: #Location information, for routing selection
+                        region: test
+                        zone: test
+                        campus: test
+                serverConnector:
+                    refresh_interval: 10000 #Name Routing Information Synchronization Refresh time
+                    protocol: trpc #Name service remote interactive protocol type
+                    timeout: 2000 #Name service request timeout
+                    addresses: 9.87.200.63:8091 #Name service remote address list
+            consumer:
+                localCache:
+                    type: inmemory #Cache type
+                    serviceExpireTime: 3600 #Service timeout elimination time
+                    persistDir: /usr/local/trpc/data/polarismesh/backup #Cache persistence path
+                circuitBreaker:
+                    enable: true
+                loadBalancer:
+                    type: weightedRandom #Load balancing type
+    limiter: #Visit current -limiting configuration
+        polarismesh: #polarismesh access to the configuration of flow limit
+            updateCallResult: true
+    metrics:
+        test_trpc_metrics:
+    log:
+      default:
+        - name: default
+          min_level: 1 # 0-trace, 1-debug, 2-info, 3-warn, 4-error, 5-critical
+          format: "[%H:%M:%S %z] [thread %t] %v"
+          mode: 1 # 1-synchronous, 2-asynchronous, 3-speed speed
+          sinks:
+            local_file:
+              filename: local_file.testing.log
+              reserve_count: 5
+              roll_type: by_size #by_size-divided by size, by_DAY- divided by day, by_hour-
+              roll_size: 1000000
+              rotation_hour: 0 #Means the moment of cutting by day, specifically at all times through rotation_hour: rotation_minute
+              rotation_minute: 0
+              hour_interval: 1 #It means that the interval between the hourly segmentation is the hour, and the default interval is one hour
+            stdout: # Sink of the local console
+              eol: true                    # Whether the output is automatically changed.Default
+              stderr_level: 0              # The lowest level output to the stderr, defaults to 4 (error)

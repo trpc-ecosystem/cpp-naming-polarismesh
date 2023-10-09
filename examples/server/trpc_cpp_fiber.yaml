@@ -1,0 +1,46 @@
+global:
+  namespace: Development
+  heartbeat:
+    enable_heartbeat: false  # 心跳上报开关，默认为true
+  threadmodel:
+    fiber:                            # Use Fiber(m:n coroutine) threadmodel
+      - instance_name: fiber_instance # Need to be unique if you config mutiple fiber threadmodel instances
+        # Fiber worker thread num
+        # If not specified, will use number of cores on the machine.
+        # In a Numa architecture, the workers will be automatically grouped (8-15 cores per group),
+        # while in Uma architecture, they will not be grouped.
+        concurrency_hint: 8
+server:
+  app: test
+  server: helloworld
+  admin_port: 8888                    # Start server with admin service which can manage service
+  admin_ip: 0.0.0.0
+  registry_name: polarismesh
+  enable_self_register: false         # self-registration switch, if false, requires the user to register to the naming service
+  service:
+    - name: trpc.test.helloworld.Greeter
+      protocol: trpc                  # Application layer protocol, eg: trpc/http/...
+      network: tcp                    # Network type, Support two types: tcp/udp
+      ip: 127.0.0.1                     # Service bind ip
+      port: 10001                     # Service bind port
+
+plugins:
+  registry: # registry plugin configuration
+    polarismesh:
+      service:
+        - name: trpc.test.helloworld.Greeter # service name
+          namespace: Development # Environment type: formal production, informal development, etc.
+          token: 65e4789a6d5b49669adf1e9e8387549c # token of the service. It is used for heartbeat reporting
+          # instance_id: 30xxxxxxxxxxx8 # This parameter is required for service heartbeat reporting. If this parameter is not configured, use the host:port of service to report the service heartbeat
+  limiter: # limiter plugin configuration
+    polarismesh:
+      mode: global # Traffic limiting mode: global (quota shared by all instances), local (quota not shared, no need to access the back-end quota server to dynamically calculate the remaining quota)
+      rateLimitCluster: # Configure the traffic limiting cluster
+      namespace: Development
+      service: xxx # Traffic limiting cluster, mandatory. For details, see the Polaris Traffic limiting document. (Replace xxx with the access traffic limiting cluster.)
+  selector: # Route Select Configuration
+    polarismesh: # The configuration of the polarismeshway Selection
+      global:
+        serverConnector:
+          addresses:
+            - 127.0.0.1:8091 # Required field, backend cluster for polarismesh
