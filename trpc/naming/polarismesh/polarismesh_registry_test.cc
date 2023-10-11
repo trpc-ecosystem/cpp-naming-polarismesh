@@ -11,7 +11,7 @@
 //
 //
 
-#include "trpc/naming/polarismesh/polaris_registry.h"
+#include "trpc/naming/polarismesh/polarismesh_registry.h"
 
 #include <pthread.h>
 #include <stdint.h>
@@ -21,14 +21,14 @@
 #include "yaml-cpp/yaml.h"
 
 #include "trpc/common/trpc_plugin.h"
-#include "trpc/naming/polarismesh/mock_polaris_api_test.h"
+#include "trpc/naming/polarismesh/mock_polarismesh_api_test.h"
 #include "trpc/naming/registry.h"
 #include "trpc/naming/registry_factory.h"
 
 namespace trpc {
 
 // There is no Instanceid in the configuration file
-class PolarisRegistryWithoutInstanceIdTest : public polaris::MockServerConnectorTest {
+class PolarisMeshRegistryWithoutInstanceIdTest : public polaris::MockServerConnectorTest {
  protected:
   virtual void SetUp() {
     polaris::MockServerConnectorTest::SetUp();
@@ -45,7 +45,7 @@ class PolarisRegistryWithoutInstanceIdTest : public polaris::MockServerConnector
 
   void InitPolarisNoInstanceID() {
     PolarisNamingTestConfigSwitch default_Switch;
-    YAML::Node root = YAML::Load(trpc::buildPolarisNamingConfig(default_Switch));
+    YAML::Node root = YAML::Load(trpc::buildPolarisMeshNamingConfig(default_Switch));
     YAML::Node registry_node = root["registry"];
     trpc::naming::RegistryConfig registry_config = registry_node["polarismesh"].as<trpc::naming::RegistryConfig>();
     // Use IP: Port to report
@@ -57,15 +57,15 @@ class PolarisRegistryWithoutInstanceIdTest : public polaris::MockServerConnector
     strstream << selector_node["polarismesh"];
     std::string orig_selector_config = strstream.str();
 
-    trpc::naming::PolarisNamingConfig naming_config;
+    trpc::naming::PolarisMeshNamingConfig naming_config;
     naming_config.name = "polarismesh";
     naming_config.registry_config = registry_config;
     naming_config.orig_selector_config = orig_selector_config;
     naming_config.Display();
 
-    trpc::RefPtr<trpc::PolarisRegistry> p = MakeRefCounted<trpc::PolarisRegistry>();
+    trpc::RefPtr<trpc::PolarisMeshRegistry> p = MakeRefCounted<trpc::PolarisMeshRegistry>();
     trpc::RegistryFactory::GetInstance()->Register(p);
-    registry_ = static_pointer_cast<PolarisRegistry>(trpc::RegistryFactory::GetInstance()->Get("polarismesh"));
+    registry_ = static_pointer_cast<PolarisMeshRegistry>(trpc::RegistryFactory::GetInstance()->Get("polarismesh"));
     EXPECT_EQ(p.get(), registry_.get());
 
     registry_->SetPluginConfig(naming_config);
@@ -88,10 +88,10 @@ class PolarisRegistryWithoutInstanceIdTest : public polaris::MockServerConnector
   }
 
  protected:
-  trpc::PolarisRegistryPtr registry_;
+  trpc::PolarisMeshRegistryPtr registry_;
 };
 
-TEST_F(PolarisRegistryWithoutInstanceIdTest, Register) {
+TEST_F(PolarisMeshRegistryWithoutInstanceIdTest, Register) {
   std::string callee_service = "test.service";
   trpc::RegistryInfo register_info;
   register_info.host = "127.0.0.1";
@@ -120,7 +120,7 @@ TEST_F(PolarisRegistryWithoutInstanceIdTest, Register) {
   ASSERT_EQ("return_instance", register_info.meta["instance_id"]);
 }
 
-TEST_F(PolarisRegistryWithoutInstanceIdTest, Unregister) {
+TEST_F(PolarisMeshRegistryWithoutInstanceIdTest, Unregister) {
   std::string callee_service = "test.service";
   trpc::RegistryInfo register_info;
   register_info.host = "127.0.0.1";
@@ -146,7 +146,7 @@ TEST_F(PolarisRegistryWithoutInstanceIdTest, Unregister) {
   ASSERT_EQ(0, ret);
 }
 
-TEST_F(PolarisRegistryWithoutInstanceIdTest, HeartBeat) {
+TEST_F(PolarisMeshRegistryWithoutInstanceIdTest, HeartBeat) {
   std::string callee_service = "test.service";
   trpc::RegistryInfo register_info;
   register_info.host = "127.0.0.1";
@@ -173,7 +173,7 @@ TEST_F(PolarisRegistryWithoutInstanceIdTest, HeartBeat) {
   ASSERT_EQ(0, ret);
 }
 
-TEST_F(PolarisRegistryWithoutInstanceIdTest, AsyncHeartBeat) {
+TEST_F(PolarisMeshRegistryWithoutInstanceIdTest, AsyncHeartBeat) {
   std::string callee_service = "test.service";
   trpc::RegistryInfo register_info;
   register_info.host = "127.0.0.1";
@@ -214,11 +214,11 @@ TEST_F(PolarisRegistryWithoutInstanceIdTest, AsyncHeartBeat) {
 }
 
 // The configuration file contains Instanceid
-class PolarisRegistryWithInstanceIdTest : public polaris::MockServerConnectorTest {
+class PolarisMeshRegistryWithInstanceIdTest : public polaris::MockServerConnectorTest {
  protected:
   virtual void SetUp() {
     polaris::MockServerConnectorTest::SetUp();
-    InitPolarisRegistryWithInstanceId();
+    InitPolarisMeshRegistryWithInstanceId();
   }
 
   virtual void TearDown() {
@@ -227,9 +227,9 @@ class PolarisRegistryWithInstanceIdTest : public polaris::MockServerConnectorTes
     registry_ = nullptr;
   }
 
-  void InitPolarisRegistryWithInstanceId() {
+  void InitPolarisMeshRegistryWithInstanceId() {
     PolarisNamingTestConfigSwitch default_Switch;
-    YAML::Node root = YAML::Load(trpc::buildPolarisNamingConfig(default_Switch));
+    YAML::Node root = YAML::Load(trpc::buildPolarisMeshNamingConfig(default_Switch));
     YAML::Node registry_node = root["registry"];
     trpc::naming::RegistryConfig registry_config = registry_node["polarismesh"].as<trpc::naming::RegistryConfig>();
 
@@ -239,15 +239,15 @@ class PolarisRegistryWithInstanceIdTest : public polaris::MockServerConnectorTes
     strstream << selector_node["polarismesh"];
     std::string orig_selector_config = strstream.str();
 
-    trpc::naming::PolarisNamingConfig naming_config;
+    trpc::naming::PolarisMeshNamingConfig naming_config;
     naming_config.name = "polarismesh";
     naming_config.registry_config = registry_config;
     naming_config.orig_selector_config = orig_selector_config;
     naming_config.Display();
 
-    trpc::RefPtr<trpc::PolarisRegistry> p = MakeRefCounted<trpc::PolarisRegistry>();
+    trpc::RefPtr<trpc::PolarisMeshRegistry> p = MakeRefCounted<trpc::PolarisMeshRegistry>();
     trpc::RegistryFactory::GetInstance()->Register(p);
-    registry_ = static_pointer_cast<PolarisRegistry>(trpc::RegistryFactory::GetInstance()->Get("polarismesh"));
+    registry_ = static_pointer_cast<PolarisMeshRegistry>(trpc::RegistryFactory::GetInstance()->Get("polarismesh"));
     EXPECT_EQ(p.get(), registry_.get());
 
     registry_->SetPluginConfig(naming_config);
@@ -256,10 +256,10 @@ class PolarisRegistryWithInstanceIdTest : public polaris::MockServerConnectorTes
   }
 
  protected:
-  trpc::PolarisRegistryPtr registry_;
+  trpc::PolarisMeshRegistryPtr registry_;
 };
 
-TEST_F(PolarisRegistryWithInstanceIdTest, Unregister) {
+TEST_F(PolarisMeshRegistryWithInstanceIdTest, Unregister) {
   std::string callee_service = "test.service";
   trpc::RegistryInfo register_info;
   register_info.meta["namespace"] = kPolarisNamespaceTest;
@@ -275,7 +275,7 @@ TEST_F(PolarisRegistryWithInstanceIdTest, Unregister) {
   ASSERT_EQ(0, ret);
 }
 
-TEST_F(PolarisRegistryWithInstanceIdTest, HeartBeat) {
+TEST_F(PolarisMeshRegistryWithInstanceIdTest, HeartBeat) {
   std::string callee_service = "test.service";
   trpc::RegistryInfo register_info;
   register_info.meta["namespace"] = kPolarisNamespaceTest;
@@ -290,9 +290,9 @@ TEST_F(PolarisRegistryWithInstanceIdTest, HeartBeat) {
   ASSERT_EQ(0, ret);
 }
 
-TEST_F(PolarisRegistryWithInstanceIdTest, AsyncHeartBeat) {
+TEST_F(PolarisMeshRegistryWithInstanceIdTest, AsyncHeartBeat) {
   polaris::ServiceKey service_key;
-  PolarisHeartbeatCallback call_back(service_key);
+  PolarisMeshHeartbeatCallback call_back(service_key);
   call_back.Response(polaris::ReturnCode::kReturnOk, "");
   call_back.Response(polaris::ReturnCode::kReturnUnknownError, "");
 

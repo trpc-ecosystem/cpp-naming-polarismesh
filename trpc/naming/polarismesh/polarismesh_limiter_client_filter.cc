@@ -11,7 +11,7 @@
 //
 //
 
-#include "trpc/naming/polarismesh/polaris_limiter_client_filter.h"
+#include "trpc/naming/polarismesh/polarismesh_limiter_client_filter.h"
 
 #include <utility>
 
@@ -22,7 +22,7 @@
 
 namespace trpc {
 
-LimitRetCode PolarisLimiterClientFilter::ShouldLimit(const ClientContextPtr& context) {
+LimitRetCode PolarisMeshLimiterClientFilter::ShouldLimit(const ClientContextPtr& context) {
   // Fill limit info
   LimitInfo limit_info;
   limit_info.name = context->GetServiceProxyOption()->target;            // Join the service name
@@ -34,7 +34,7 @@ LimitRetCode PolarisLimiterClientFilter::ShouldLimit(const ClientContextPtr& con
   return limiter_->ShouldLimit(&limit_info);
 }
 
-void PolarisLimiterClientFilter::FinishLimit(const ClientContextPtr& context, LimitRetCode ret_code) {
+void PolarisMeshLimiterClientFilter::FinishLimit(const ClientContextPtr& context, LimitRetCode ret_code) {
   if (!update_call_result_) {
     return;
   }
@@ -54,12 +54,12 @@ void PolarisLimiterClientFilter::FinishLimit(const ClientContextPtr& context, Li
   limiter_->FinishLimit(&limit_result);
 }
 
-std::vector<FilterPoint> PolarisLimiterClientFilter::GetFilterPoint() {
+std::vector<FilterPoint> PolarisMeshLimiterClientFilter::GetFilterPoint() {
   std::vector<FilterPoint> points = {FilterPoint::CLIENT_PRE_RPC_INVOKE, FilterPoint::CLIENT_POST_RPC_INVOKE};
   return points;
 }
 
-void PolarisLimiterClientFilter::operator()(FilterStatus& status, FilterPoint point, const ClientContextPtr& context) {
+void PolarisMeshLimiterClientFilter::operator()(FilterStatus& status, FilterPoint point, const ClientContextPtr& context) {
   TRPC_ASSERT(context->GetServiceProxyOption() && "service option is null");
   TRPC_ASSERT(limiter_ && "limiter is null");
   if (point == FilterPoint::CLIENT_PRE_RPC_INVOKE) {

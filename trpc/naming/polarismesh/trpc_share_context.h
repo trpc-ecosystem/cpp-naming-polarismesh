@@ -20,7 +20,7 @@
 #include "polaris/plugin/server_connector/server_connector.h"
 #include "polaris/polaris.h"
 
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 
 namespace trpc {
 
@@ -36,9 +36,9 @@ class TrpcShareContext {
   TrpcShareContext& operator=(const TrpcShareContext&) = delete;
 
   /// @brief Initialize the polarismesh according to the framework configuration file
-  /// @param polaris_naming_config polarismesh plugin configuration
+  /// @param polarismesh_naming_config polarismesh plugin configuration
   /// @return int Success is 0, failure is -1
-  int Init(const trpc::naming::PolarisNamingConfig& polaris_naming_config);
+  int Init(const trpc::naming::PolarisMeshNamingConfig& polarismesh_naming_config);
 
   /// @brief Destruction of polarismesh Context
   void Destroy();
@@ -49,7 +49,7 @@ class TrpcShareContext {
   ///       Note: Don't try the context obtained by the destruction, which will make the polarismesh plug -in function
   ///       fail
   /// @return std::shared_ptr<polarismesh::Context> Quote from the polarismesh Context
-  std::shared_ptr<polaris::Context> GetPolarisContext() { return polaris_context_; }
+  std::shared_ptr<polaris::Context> GetPolarisContext() { return polarismesh_context_; }
 
   /// @brief Get the Server Connector object inside SDK, and the integrated test will call
   /// @return ServerConnector* References of the polarismesh Internal Server Connector object
@@ -61,7 +61,7 @@ class TrpcShareContext {
  private:
   bool init_{false};
   std::mutex mutex_;
-  std::shared_ptr<polaris::Context> polaris_context_{nullptr};
+  std::shared_ptr<polaris::Context> polarismesh_context_{nullptr};
 };
 
 }  // namespace trpc

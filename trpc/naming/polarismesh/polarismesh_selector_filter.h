@@ -23,11 +23,11 @@
 namespace trpc {
 
 /// @brief polarismesh Service Discovery Filter
-class PolarisSelectorFilter : public MessageClientFilter {
+class PolarisMeshSelectorFilter : public MessageClientFilter {
  public:
-  PolarisSelectorFilter() { selector_flow_ = std::make_unique<SelectorWorkFlow>("polarismesh", true, true); }
+  PolarisMeshSelectorFilter() { selector_flow_ = std::make_unique<SelectorWorkFlow>("polarismesh", true, true); }
 
-  ~PolarisSelectorFilter() override {}
+  ~PolarisMeshSelectorFilter() override {}
 
   /// @brief initialization
   int Init() override { return selector_flow_->Init(); }
@@ -53,6 +53,6 @@ class PolarisSelectorFilter : public MessageClientFilter {
   std::unique_ptr<SelectorWorkFlow> selector_flow_;
 };
 
-using PolarisSelectorFilterPtr = RefPtr<PolarisSelectorFilter>;
+using PolarisMeshSelectorFilterPtr = RefPtr<PolarisMeshSelectorFilter>;
 
 }  // namespace trpc

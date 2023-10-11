@@ -20,10 +20,10 @@
 
 #include "examples/server/greeter_service.h"
 
-#include "trpc/naming/polarismesh/polaris_registry_api.h"
-#include "trpc/naming/polarismesh/polaris_selector_api.h"
-#include "trpc/naming/polarismesh/polaris_limiter_api.h"
-#include "trpc/naming/polarismesh/polaris_registry.h"
+#include "trpc/naming/polarismesh/polarismesh_registry_api.h"
+#include "trpc/naming/polarismesh/polarismesh_selector_api.h"
+#include "trpc/naming/polarismesh/polarismesh_limiter_api.h"
+#include "trpc/naming/polarismesh/polarismesh_registry.h"
 
 namespace test::helloworld {
 
@@ -50,7 +50,7 @@ class HelloWorldServer : public ::trpc::TrpcApp {
   }
 
   void HeartBeat() {
-    auto registry = trpc::static_pointer_cast<trpc::PolarisRegistry>(trpc::RegistryFactory::GetInstance()->Get("polarismesh"));
+    auto registry = trpc::static_pointer_cast<trpc::PolarisMeshRegistry>(trpc::RegistryFactory::GetInstance()->Get("polarismesh"));
     new std::thread([=] {
       while (true) {
         auto ret_code = registry->HeartBeat(&register_info);
@@ -65,7 +65,7 @@ class HelloWorldServer : public ::trpc::TrpcApp {
   }
 
   void RegisterPolarismesh() {
-    auto registry = trpc::static_pointer_cast<trpc::PolarisRegistry>(trpc::RegistryFactory::GetInstance()->Get("polarismesh"));
+    auto registry = trpc::static_pointer_cast<trpc::PolarisMeshRegistry>(trpc::RegistryFactory::GetInstance()->Get("polarismesh"));
     auto ret = registry->Register(&register_info);
     if (ret != 0) {
       TRPC_FMT_ERROR("Failed to register service");
