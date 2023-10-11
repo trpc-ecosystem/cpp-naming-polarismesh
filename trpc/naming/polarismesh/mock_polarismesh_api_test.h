@@ -39,7 +39,7 @@
 #include "v1/code.pb.h"
 #include "yaml-cpp/yaml.h"
 
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 
 namespace trpc {
 
@@ -54,8 +54,8 @@ struct PolarisNamingTestConfigSwitch {
   bool need_ratelimiter = false;
 };
 
-inline std::string buildPolarisNamingConfig(const PolarisNamingTestConfigSwitch& default_switch) {
-  trpc::naming::PolarisNamingConfig naming_config("polarismesh");
+inline std::string buildPolarisMeshNamingConfig(const PolarisNamingTestConfigSwitch& default_switch) {
+  trpc::naming::PolarisMeshNamingConfig naming_config("polarismesh");
 
   // registry config
   naming_config.registry_config.heartbeat_interval = 1011;

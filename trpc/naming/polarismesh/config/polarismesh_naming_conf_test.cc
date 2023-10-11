@@ -12,7 +12,7 @@
 //
 
 #ifndef BUILD_EXCLUDE_NAMING_POLARIS
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 
 #include <iostream>
 #include <memory>
@@ -21,15 +21,15 @@
 #include "gtest/gtest.h"
 #include "yaml-cpp/yaml.h"
 
-#include "trpc/naming/polarismesh/mock_polaris_api_test.h"
+#include "trpc/naming/polarismesh/mock_polarismesh_api_test.h"
 
-TEST(PolarisNamingConfig, Load) {
+TEST(PolarisMeshNamingConfig, Load) {
   trpc::PolarisNamingTestConfigSwitch defaultSwitch;
   defaultSwitch.bind_ip = "127.0.0.1";
   defaultSwitch.bind_if = "eth1";
   defaultSwitch.need_circuitbreaker = true;
   defaultSwitch.need_ratelimiter = true;
-  std::string naming_config_str = trpc::buildPolarisNamingConfig(defaultSwitch);
+  std::string naming_config_str = trpc::buildPolarisMeshNamingConfig(defaultSwitch);
   std::cout << "naming_config_str:" << std::endl << naming_config_str << std::endl;
   YAML::Node root = YAML::Load(naming_config_str);
   root["selector"]["polarismesh"]["global"]["system"]["healthCheckCluster"]["namespace"] = "Polaris";
@@ -38,8 +38,8 @@ TEST(PolarisNamingConfig, Load) {
   root["selector"]["polarismesh"]["global"]["system"]["monitorCluster"]["service"] = "polarismesh.monitor.pcg";
   root["selector"]["polarismesh"]["consumer"]["circuitBreaker"]["setCircuitBreaker"]["enable"] = true;
 
-  trpc::naming::PolarisNamingConfig naming_conf("polarismesh");
-  ASSERT_TRUE(YAML::convert<trpc::naming::PolarisNamingConfig>::decode(root, naming_conf));
+  trpc::naming::PolarisMeshNamingConfig naming_conf("polarismesh");
+  ASSERT_TRUE(YAML::convert<trpc::naming::PolarisMeshNamingConfig>::decode(root, naming_conf));
   naming_conf.Display();
 
   // Check whether the local network address is successfully changed

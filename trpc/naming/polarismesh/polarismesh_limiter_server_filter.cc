@@ -11,7 +11,7 @@
 //
 //
 
-#include "trpc/naming/polarismesh/polaris_limiter_server_filter.h"
+#include "trpc/naming/polarismesh/polarismesh_limiter_server_filter.h"
 
 #include <utility>
 
@@ -22,7 +22,7 @@
 #include "trpc/util/time.h"
 namespace trpc {
 
-int PolarisLimiterServerFilter::Init() {
+int PolarisMeshLimiterServerFilter::Init() {
   limiter_ = LimiterFactory::GetInstance()->Get("polarismesh");
   trpc::naming::RateLimiterConfig config;
   if (TrpcConfig::GetInstance()->GetPluginConfig<trpc::naming::RateLimiterConfig>("limiter", "polarismesh", config)) {
@@ -31,7 +31,7 @@ int PolarisLimiterServerFilter::Init() {
   return 0;
 }
 
-LimitRetCode PolarisLimiterServerFilter::ShouldLimit(const ServerContextPtr& context) {
+LimitRetCode PolarisMeshLimiterServerFilter::ShouldLimit(const ServerContextPtr& context) {
   LimitInfo limit_info;
   limit_info.name = context->GetService()->GetName();                                  // Join the service name
   limit_info.name_space = TrpcConfig::GetInstance()->GetGlobalConfig().env_namespace;  // The named space
@@ -53,7 +53,7 @@ LimitRetCode PolarisLimiterServerFilter::ShouldLimit(const ServerContextPtr& con
   return ret_code;
 }
 
-void PolarisLimiterServerFilter::FinishLimit(const ServerContextPtr& context, LimitRetCode ret_code) {
+void PolarisMeshLimiterServerFilter::FinishLimit(const ServerContextPtr& context, LimitRetCode ret_code) {
   if (!update_call_result_) {
     return;
   }
@@ -73,12 +73,12 @@ void PolarisLimiterServerFilter::FinishLimit(const ServerContextPtr& context, Li
   limiter_->FinishLimit(&limit_result);
 }
 
-std::vector<FilterPoint> PolarisLimiterServerFilter::GetFilterPoint() {
+std::vector<FilterPoint> PolarisMeshLimiterServerFilter::GetFilterPoint() {
   std::vector<FilterPoint> points = {FilterPoint::SERVER_PRE_RPC_INVOKE, FilterPoint::SERVER_POST_RPC_INVOKE};
   return points;
 }
 
-void PolarisLimiterServerFilter::operator()(FilterStatus& status, FilterPoint point, const ServerContextPtr& context) {
+void PolarisMeshLimiterServerFilter::operator()(FilterStatus& status, FilterPoint point, const ServerContextPtr& context) {
   TRPC_ASSERT(context->GetService() && "service adapter is null");
   TRPC_ASSERT(limiter_ && "limiter is null");
   if (point == FilterPoint::SERVER_PRE_RPC_INVOKE) {

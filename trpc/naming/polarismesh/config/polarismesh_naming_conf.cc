@@ -11,7 +11,7 @@
 //
 //
 
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 #include "trpc/util/log/logging.h"
 
 namespace trpc::naming {
@@ -254,7 +254,7 @@ void RateLimiterConfig::Display() const {
   TRPC_LOG_DEBUG("--------------------------------");
 }
 
-void PolarisNamingConfig::Display() const {
+void PolarisMeshNamingConfig::Display() const {
   TRPC_LOG_DEBUG("--------------------------------");
 
   TRPC_LOG_DEBUG("name:" << name);
