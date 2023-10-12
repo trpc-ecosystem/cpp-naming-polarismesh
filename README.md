@@ -205,8 +205,8 @@ plugins:
 ### Enable the tRPC-Cpp framework's self-registration
 If the service is not published using the platform and the user has no special requirements for the service instance's weight, heartbeat detection cycle, etc., it is recommended to enable the framework's self-registration function.
 **Usage process:**
-- step1 (Apply for a Polaris service name): Register a service on the Polaris management platform page. Log in to the [Polaris management platform](http://192.127.0.0:8080/#/login)to register a service, remember the service_name, namespace, and token.
-- step2 (Let the framework automatically register the service instance): Fill in the corresponding configuration file configuration items server configuration
+**step1 (Apply for a Polaris service name): **Register a service on the Polaris management platform page. Log in to the [Polaris management platform](http://192.127.0.0:8080/#/login)to register a service, remember the service_name, namespace, and token.
+**step2 (Let the framework automatically register the service instance): ** Fill in the corresponding configuration file configuration items server configuration
 server配置
 ```yaml
 # Server configuration
@@ -235,8 +235,8 @@ plugins:
 ### Register through the plugin interface
 If the business has special requirements for the service instance's weight, heartbeat detection cycle, etc., it is recommended to directly call the naming service plugin's Register interface for registration or call the Unregister interface for deregistration.
 **Usage process:**
-- Step1: **Register a service on the Polaris management platform page. Log in to the [Polaris management platform](http://192.127.0.0:8080/#/login) to register a service, remember the service_name, namespace, and token (the icon that looks like a fingerprint on the interface).
-- Step2: **Manually call the plugin registration and deregistration interface
+**Step1: **Register a service on the Polaris management platform page. Log in to the [Polaris management platform](http://192.127.0.0:8080/#/login) to register a service, remember the service_name, namespace, and token (the icon that looks like a fingerprint on the interface).
+**Step2: **Manually call the plugin registration and deregistration interface
 ```cpp
 trpc::TrpcRegistryInfo registry_info;
 // Required items
@@ -294,9 +294,10 @@ client:
 ```
 
 ### Simple client-side rate limiting example (supports both caller and method dimensions, here using caller dimension as an example)
-- Scenario: The downstream service is trpc.trpctest.helloworld.Greeter, with two upstream services trpc.A and trpc.B. Now, based on the upstream service name, rate limiting is applied separately for trpc.A and trpc.B, with trpc.A allowing a maximum of 1 request per second and trpc.B allowing a maximum of 2 requests per second.
-- Polaris interface configuration: **To configure rate limiting rules, please go to the Polaris management platform（http://192.127.0.0:8080）
-- Service configuration: **Here, choose to configure rate limiting on the client side
+**Scenario: **The downstream service is trpc.trpctest.helloworld.Greeter, with two upstream services trpc.A and trpc.B. Now, based on the upstream service name, rate limiting is applied separately for trpc.A and trpc.B, with trpc.A allowing a maximum of 1 request per second and trpc.B allowing a maximum of 2 requests per second.
+
+**Polaris interface configuration: **To configure rate limiting rules, please go to the Polaris management platform（http://192.127.0.0:8080）
+**Service configuration: **Here, choose to configure rate limiting on the client side
 ```yaml
 client:
   service:
@@ -314,7 +315,7 @@ plugins:
 ```
 
 ### Simple server-side rate limiting example (supports both caller and method dimensions, here using method dimension as an example)
-- Scenario: The downstream service is trpc.peggiezhutest.limiter.Greeter, with SayHello and SayWorld as two RPC interfaces. Now, based on the RPC interface name, rate limiting is applied separately for SayHello and SayWorld, with SayHello allowing a maximum of 1 request per 5 seconds and SayWorld allowing a maximum of 2 requests per 5 seconds. Taking the trpc protocol as an example, the corresponding proto is:
+**Scenario: **The downstream service is trpc.peggiezhutest.limiter.Greeter, with SayHello and SayWorld as two RPC interfaces. Now, based on the RPC interface name, rate limiting is applied separately for SayHello and SayWorld, with SayHello allowing a maximum of 1 request per 5 seconds and SayWorld allowing a maximum of 2 requests per 5 seconds. Taking the trpc protocol as an example, the corresponding proto is:
 ```
 service Greeter {
   rpc SayHello (HelloRequest) returns (HelloReply) {}
@@ -322,9 +323,9 @@ service Greeter {
   rpc SayWorld (HelloRequest) returns (HelloReply) {}
 }
 ```
-- Polaris interface configuration: **To configure rate limiting rules, please go to the Polaris management platform(http://192.127.0.0:8080).
+**Polaris interface configuration: **To configure rate limiting rules, please go to the Polaris management platform(http://192.127.0.0:8080).
 Since the PRC interface name is used for matching, fill in the dimension name as "method".
-- Service configuration: **Here, choose to configure rate limiting on the server side
+**Service configuration: **Here, choose to configure rate limiting on the server side
 ```yaml
 server:
   service:
