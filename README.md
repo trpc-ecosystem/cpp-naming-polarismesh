@@ -25,8 +25,8 @@ In the Polaris routing selection plugin configuration, if the consumer configura
 plugins:
   selector:  # Routing selection configuration
     polarismesh:  # Polaris routing selection plugin
-     consumer:
-	   serviceRouter:
+      consumer:
+       serviceRouter:
          chain: # Service routing chain, all the following strategies are enabled by default
            - ruleRouter  # Rule routing plugin, used for rule filtering
            - nearbyRouter  # Proximity routing plugin, used for proximity access
@@ -111,7 +111,7 @@ plugins:
    selector:
       polarismesh:
         dynamic_weight:
-           isOpenDynamicWeight: true # Set to true
+          isOpenDynamicWeight: true # Set to true
         consumer:
           loadbalancer:
             enableDynamicWeight: true # Set to true

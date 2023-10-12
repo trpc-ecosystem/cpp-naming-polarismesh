@@ -25,11 +25,11 @@ plugins:
 plugins:
   selector:  #路由选择配置
     polarismesh:  #北极星路由选择插件
-     consumer:
-	   serviceRouter:
-         chain: #服务路由链，默认打开下列全部策略
-           - ruleRouter  #规则路由插件，用于规则过滤
-           - nearbyRouter  #就近路由插件，用于就近访问
+      consumer:
+        serviceRouter:
+          chain: #服务路由链，默认打开下列全部策略
+            - ruleRouter  #规则路由插件，用于规则过滤
+            - nearbyRouter  #就近路由插件，用于就近访问
 ```
 
 ### 就近路由
