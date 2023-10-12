@@ -108,7 +108,7 @@ client:
 ```
 
 #### 动态权重的配置（不包含服务端的上报功能）
-**step1：**框架配置文件，开启sdk的动态权重线程
+- step1：框架配置文件，开启sdk的动态权重线程
 ```yaml
 plugins:
   selector:
@@ -120,7 +120,7 @@ plugins:
           enableDynamicWeight: true # 设置为true
           type: weightedRandom # 负载均衡类型(虽然具体使用的负载均衡算法是dynamicWeight，但这里要填基本的权重随机算法weightedRandom)
 ```
-**step2：**客户端调用
+- step2：客户端调用
 ```yaml
 client:
   service:
@@ -202,8 +202,8 @@ plugins:
 
 若未使用平台发布服务，且用户对服务实例的权重，心跳检测周期等没有特殊要求，建议开启框架的自注册功能。
 **使用流程：**
-**step1（申请一个北极星服务名）: **在北极星管理平台页面注册服务。通过登陆[北极星管理平台](http://192.127.0.0:8080/#/login)注册一个服务，记住服务名service_name，命名空间namespace以及token。
-**step2（让框架自动注册服务实例）: **填写对应的配置文件配置项
+- step1（申请一个北极星服务名）：在北极星管理平台页面注册服务。通过登陆[北极星管理平台](http://192.127.0.0:8080/#/login)注册一个服务，记住服务名service_name，命名空间namespace以及token。
+- step2（让框架自动注册服务实例）：填写对应的配置文件配置项
 server配置
 ```yaml
 # 服务端配置
@@ -232,8 +232,8 @@ plugins:
 ### 通过插件接口注册
 若业务对服务实例的权重，心跳检测周期等有特殊要求，建议直接调用名字服务插件的Register接口进行注册或者调用Unregister接口进行反注册。
 **使用流程：**
-**step1：**在北极星管理平台页面注册服务。通过登陆[北极星管理平台](http://192.127.0.0:8080/#/login)注册一个服务，记住服务名service_name，命名空间namespace以及token（界面上像指纹的图标）
-**step2：**手动调用插件注册与反注册接口
+- step1：在北极星管理平台页面注册服务。通过登陆[北极星管理平台](http://192.127.0.0:8080/#/login)注册一个服务，记住服务名service_name，命名空间namespace以及token（界面上像指纹的图标）
+- step2：手动调用插件注册与反注册接口
 ```
 #服务端配置
 server:
@@ -262,8 +262,8 @@ plugins:
 ### 通过插件接口注册
 若业务对服务实例的权重，心跳检测周期等有特殊要求，建议直接调用名字服务插件的Register接口进行注册或者调用Unregister接口进行反注册
 **使用流程：**
-**step1: **在北极星管理平台页面注册服务。通过登陆[北极星管理平台](http://192.127.0.0:8080/#/login)注册一个服务，记住服务名service_name，命名空间namespace以及token（界面上像指纹的图标）
-**step2: **手动调用插件注册与反注册接口
+- step1: 在北极星管理平台页面注册服务。通过登陆[北极星管理平台](http://192.127.0.0:8080/#/login)注册一个服务，记住服务名service_name，命名空间namespace以及token（界面上像指纹的图标）
+- step2: 手动调用插件注册与反注册接口
 ```cpp
 trpc::TrpcRegistryInfo registry_info;
 // 必填项
@@ -324,10 +324,9 @@ client:
 ```
 
 ### 简单的客户端限流示例（caller和method维度均支持，这里以caller维度为例）
-**场景：**下游服务为trpc.trpctest.helloworld.Greeter，有两个上游服务trpc.A和trpc.B。现在要根据上游服务名分别对trpc.A和trpc.B限流，trpc.A允许1s最多请求1次，trpc.B允许1s最多请求2次。
-
-**北极星界面配置：**配置限流规则请移步到北极星管理平台（http://192.127.0.0:8080）
-**服务配置：**这里选择在客户端做限流配置
+- 场景：下游服务为trpc.trpctest.helloworld.Greeter，有两个上游服务trpc.A和trpc.B。现在要根据上游服务名分别对trpc.A和trpc.B限流，trpc.A允许1s最多请求1次，trpc.B允许1s最多请求2次。
+- 北极星界面配置：配置限流规则请移步到北极星管理平台（http://192.127.0.0:8080）
+- 服务配置：这里选择在客户端做限流配置
 ```yaml
 client:
   service:
@@ -345,7 +344,7 @@ plugins:
 ```
 
 ### 简单的服务端限流示例（caller和method维度均支持，这里以method维度为例）
-**场景：**下游服务为trpc.peggiezhutest.limiter.Greeter，有SayHello和SayWorld两个RPC接口。现在要根据RPC接口名分别对SayHello和SayWorld限流，SayHello允许5s最多请求1次，SayWorld允许5s最多请求2次。
+- 场景：下游服务为trpc.peggiezhutest.limiter.Greeter，有SayHello和SayWorld两个RPC接口。现在要根据RPC接口名分别对SayHello和SayWorld限流，SayHello允许5s最多请求1次，SayWorld允许5s最多请求2次。
 以trpc协议为例，对应proto里的
 ```
 service Greeter {
@@ -354,9 +353,9 @@ service Greeter {
   rpc SayWorld (HelloRequest) returns (HelloReply) {}
 }
 ```
-**北极星界面配置：**配置限流规则请移步到北极星管理平台（http://192.127.0.0:8080）
+- 北极星界面配置：配置限流规则请移步到北极星管理平台（http://192.127.0.0:8080）
 因为是采用PRC接口名做匹配，维度名称填“method”。
-**服务配置：**这里选择在服务端做限流配置
+- 服务配置：这里选择在服务端做限流配置
 ```yaml
 server:
   service:
