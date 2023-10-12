@@ -36,6 +36,6 @@ def naming_polarismesh_workspace(path_prefix = "", repo_name = "", **kwargs):
     new_git_repository(
         name = "com_github_polarismesh_polaris",
         remote = "https://github.com/polarismesh/polaris-cpp.git",
-        branch = "main",
+        tag = "v1.1.1",
         build_file = "//third_party/com_github_polarismesh_polaris:polaris.BUILD",
     )

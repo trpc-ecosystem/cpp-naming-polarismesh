@@ -7,8 +7,8 @@ cc_binary(
     srcs = ["client.cc"],
     deps = [
         "//examples/server:helloworld_proto",
-        "//trpc/naming/polarismesh:polaris_limiter_api",
-        "//trpc/naming/polarismesh:polaris_selector_api",
+        "//trpc/naming/polarismesh:polarismesh_limiter_api",
+        "//trpc/naming/polarismesh:polarismesh_selector_api",
         "@com_github_gflags_gflags//:gflags",
         "@trpc_cpp//trpc/client:client_context",
         "@trpc_cpp//trpc/client:make_client_context",

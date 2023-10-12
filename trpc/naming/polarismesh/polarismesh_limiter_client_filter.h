@@ -22,18 +22,18 @@
 #include "trpc/filter/filter.h"
 #include "trpc/naming/limiter.h"
 #include "trpc/naming/limiter_factory.h"
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 
 namespace trpc {
 
 /// @brief polarismesh Client Limitor Filter
-class PolarisLimiterClientFilter : public MessageClientFilter {
+class PolarisMeshLimiterClientFilter : public MessageClientFilter {
  public:
-  PolarisLimiterClientFilter() = default;
+  PolarisMeshLimiterClientFilter() = default;
 
-  ~PolarisLimiterClientFilter() override = default;
+  ~PolarisMeshLimiterClientFilter() override = default;
 
-  std::string Name() override { return "polaris_limiter"; }
+  std::string Name() override { return "polarismesh_limiter"; }
 
   int Init() override {
     limiter_ = LimiterFactory::GetInstance()->Get("polarismesh");
@@ -67,6 +67,6 @@ class PolarisLimiterClientFilter : public MessageClientFilter {
   bool update_call_result_ = false;
 };
 
-using PolarisLimiterClientFilterPtr = RefPtr<PolarisLimiterClientFilter>;
+using PolarisMeshLimiterClientFilterPtr = RefPtr<PolarisMeshLimiterClientFilter>;
 
 }  // namespace trpc

@@ -20,8 +20,8 @@
 #include "trpc/common/status.h"
 
 #include "examples/server/helloworld.trpc.pb.h"
-#include "trpc/naming/polarismesh/polaris_selector_api.h"
-#include "trpc/naming/polarismesh/polaris_limiter_api.h"
+#include "trpc/naming/polarismesh/polarismesh_selector_api.h"
+#include "trpc/naming/polarismesh/polarismesh_limiter_api.h"
 
 DEFINE_string(config, "examples/naming/polarismesh/client/trpc_cpp_fiber.yaml", "yaml");
 DEFINE_string(target, "trpc.test.helloworld.Greeter", "callee service name");
