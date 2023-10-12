@@ -10,7 +10,7 @@ The supported scheduling strategies include proximity routing and rule routing.
 The supported load balancing strategies include weighted random and consistent hashing.
 
 ## Plugin Registration Location
-```selector yaml
+```yaml
 # Plugin configuration
 plugins:
   selector:  # Routing selection configuration
@@ -20,16 +20,16 @@ plugins:
 ## Scheduling Strategy
 In the Polaris routing selection plugin configuration, if the consumer configuration item is not configured, the framework will enable all the following scheduling strategies by default.
 **Note: The service routing chain has an order (the ones above are executed first), so the default filtering order is ruleRouter->nearbyRouter.**
-```selector yaml
+```yaml
 # Plugin configuration
 plugins:
   selector:  # Routing selection configuration
     polarismesh:  # Polaris routing selection plugin
       consumer:
-       serviceRouter:
-         chain: # Service routing chain, all the following strategies are enabled by default
-           - ruleRouter  # Rule routing plugin, used for rule filtering
-           - nearbyRouter  # Proximity routing plugin, used for proximity access
+        serviceRouter:
+          chain: # Service routing chain, all the following strategies are enabled by default
+            - ruleRouter  # Rule routing plugin, used for rule filtering
+            - nearbyRouter  # Proximity routing plugin, used for proximity access
 ```
 
 ### Proximity Routing
@@ -49,11 +49,13 @@ Traffic scheduling based on the routing rules configured by the user on Polaris.
 step1: Configure routing rules for the service on Polaris
 step2: Enable the`ruleRouter`item in the framework configuration, as shown in the default configuration above
 step3: When the caller initiates a call, set the rule routing label to be used
-```
-// // Set the label for rule routing filtering
+```cpp
+// Set the label for rule routing filtering
 std::map<std::string, std::string> ruleroute_label;
-ruleroute_label["key"] = "value";  // Here, key/value is the label for rule routing filtering
-trpc::naming::polarismesh::SetFilterMetadataOfNaming(ruleroute_label, trpc::NamingMetadataType::kRuleRouteLable);  // Set the rule routing filter label to the client_context (ClientContext object)
+// key/value is the label for rule routing filtering
+ruleroute_label["key"] = "value";
+// Set the rule routing filter label to the client_context (ClientContext object)
+trpc::naming::polarismesh::SetFilterMetadataOfNaming(ruleroute_label, trpc::NamingMetadataType::kRuleRouteLable);
 ```
 
 ## Load Balancing Strategy
@@ -66,17 +68,18 @@ The framework uses the built-in weight-round-random (wrr) strategy of the Polari
 Select a specific service instance node by specifying a specific hash key.
 **Usage process**
 **step1:** Users need to set the hash key to the context. After setting it successfully, the framework will use **consistent hashing ** by default to return the corresponding service instance node, as follows:
-```
+```cpp
 trpc::ClientContextPtr ctx = trpc::MakeRefCounted<trpc::ClientContext>();
 trpc::naming::polarismesh::SetSelectorExtendInfo(ctx, std::make_pair("hash_key", "1"));
-trpc::Status status = prx->RpcMethod(ctx, ...);  // Initiate rpc call, prx is the service proxy
+// Initiate rpc call, prx is the service proxy
+trpc::Status status = prx->RpcMethod(ctx, ...);
 ```
 **step2:** Explicitly specify the hash strategy
 **Note** For new businesses, the consistent hashing algorithm should be set to **ringhash** . As for modulohash, brpcmurmurhash, and other algorithms, they are generally set when migrating existing services that do not want to change the already used consistent hashing algorithm (different algorithms have different instance nodes corresponding to the same key).
 ringhash: corresponds to the Polaris SDK's kLoadBalanceTypeRingHash.
 modulohash: corresponds to the Polaris SDK's kLoadBalanceTypeSimpleHash // hash_key% total number of instances to select the service instance.
 brpcmurmurhash: corresponds to the Polaris SDK's kLoadBalanceTypeCMurmurHash // compatible with brpc c_murmur consistent hashing.
-```
+```yaml
 client:
   service:
     - name: trpc.peggiezhutest.helloworld.Greeter
@@ -88,7 +91,7 @@ For asynchronous invocation, search: "AsyncSelect result of " + called service n
 
 #### Hash ring algorithm, returning the adjacent node corresponding to the key
 If you want to get the adjacent nodes of the hash ring algorithm (such as ringhash), please explicitly call the SetReplicateIndex method of ClientContext to set it; if not set, the ReplicateIndex defaults to 0, which means returning the current node corresponding to the hash key.
-```
+```cpp
 trpc::ClientContextPtr ctx = trpc::MakeRefCounted<trpc::ClientContext>();
 // Set the hash key to be used (not required to be an integer), as long as it is not empty
 // Get the first adjacent node (clockwise) corresponding to the hash key, and pass in 2 to get the second adjacent node, and so on
@@ -97,7 +100,7 @@ trpc::naming::polarismesh::SetSelectorExtendInfo(ctx, std::make_pair("hash_key",
 
 #### Locality-aware load balancing algorithm
 The corresponding framework configuration is as follows:
-```
+```yaml
 client:
   service:
     - name: trpc.peggiezhutest.helloworld.Greeter
@@ -108,17 +111,17 @@ client:
 **step1:** Framework configuration file, enable the dynamic weight thread of the SDK
 ```yaml
 plugins:
-   selector:
-      polarismesh:
-        dynamic_weight:
-          isOpenDynamicWeight: true # Set to true
-        consumer:
-          loadbalancer:
-            enableDynamicWeight: true # Set to true
-            type: weightedRandom # Load balancing type (although the specific load balancing algorithm used is dynamicWeight, the basic weighted random algorithm weightedRandom should be filled here)
+  selector:
+    polarismesh:
+      dynamic_weight:
+        isOpenDynamicWeight: true # Set to true
+      consumer:
+        loadbalancer:
+          enableDynamicWeight: true # Set to true
+          type: weightedRandom # Load balancing type (although the specific load balancing algorithm used is dynamicWeight, the basic weighted random algorithm weightedRandom should be filled here)
 ```
 **step2:** Client call
-```
+```yaml
 client:
   service:
     - name: trpc.peggiezhutest.helloworld.Greeter
@@ -128,7 +131,7 @@ client:
 ## Service Circuit Breaker
 The Polaris cpp SDK calculates the failure rate and consecutive failures of the called nodes for a certain period based on the node call situation reported by the user. If the circuit breaker conditions (consecutive failures or failure rate exceeding the standard) are met, the node will be added to the list of circuit breaker instances, and the next scheduling will not include the circuit breaker nodes. At the same time, the circuit breaker nodes will be probed. When the node is detected to recover (if the probe function is not enabled, it will be after a period), it will be set to a semi-open state. If the call is successful during the semi-open state, the node will be restored to the closed state (normal); if the call fails, it will be restored to the open state (circuit breaker).
 The circuit breaker function is enabled by default. If you want to disable it, you need to set the configuration item enableCircuitBreaker to false.
-```selector yaml
+```yaml
 plugins:
   selector:
     polarismesh:
@@ -155,7 +158,7 @@ It can be done by configuration file or by specifying the code. Make sure the na
 Provides service instance registration and heartbeat reporting functions.
 
 ## Plugin registration location
-```registry yaml
+```yaml
 # Plugin configuration
 plugins:
   registry:  # Service registration configuration
@@ -175,7 +178,7 @@ global:
   namespace: ${namespace}    #Namespace, such as Production and Development
 ```
 In the server configuration, you need to !!#ff0000 **add the configuration registry_name as polaris**
-```server yaml
+```yaml
 # Server configuration
 server:
   registry_name: polaris
@@ -183,10 +186,10 @@ server:
     - name: ${service_name}    # The service name on Polaris, note the difference between this and the four-segment naming
       ip: ${ip}                # Listening IP
       nic: ${nic}              # Listening network card name, used to obtain IP through the network card name (priority is given to IP, otherwise use the network card to obtain IP)
-      port:${port}             # Listening port
+      port: ${port}             # Listening port
 ```
 In the registry plugin (plugins/registry) configuration, configure the information required for Polaris heartbeat reporting (service namespace, service name, token, instanceid).
-```registry yaml
+```yaml
 # Plugin configuration
 plugins:
   registry:  # Service registration configuration
@@ -205,28 +208,28 @@ If the service is not published using the platform and the user has no special r
 **step1 (Apply for a Polaris service name): **Register a service on the Polaris management platform page. Log in to the [Polaris management platform](http://192.127.0.0:8080/#/login)to register a service, remember the service_name, namespace, and token.
 **step2 (Let the framework automatically register the service instance): ** Fill in the corresponding configuration file configuration items server configuration
 server配置
-```server yaml
+```yaml
 # Server configuration
 server:
   registry_name: polaris       # Specify which name service to register with
-  enable_self_register: true   # Enable the framework's self-registration function
   service:
     - name: ${service_name}    # The service name on Polaris, note the difference between this and the four-segment naming
       ip: ${ip}                # Listening IP
-      port:${port}             # Listening port
+      port: ${port}             # Listening port
 ```
 register configuration
-```registry yaml
+```yaml
 # Plugin configuration
 plugins:
-  registry:  #Service registration configuration
-    polarismesh:  #Polaris service instance registration plugin
+  registry:  # Service registration configuration
+    polarismesh:  # Polaris service instance registration plugin
+      register_self: true # The service instance starts self-registration
       service:
-         - name: ${service_name}          # The service name on Polaris
-           namespace: ${namespace}        # Namespace
-           token: ${token}                # Service token
-           metadata:                      # Metadata of the service instance
-             key1
+        - name: ${service_name}          # The service name on Polaris
+          namespace: ${namespace}        # Namespace
+          token: ${token}                # Service token
+          metadata:                      # Metadata of the service instance
+            key1
 ```
 
 ### Register through the plugin interface
@@ -234,10 +237,7 @@ If the business has special requirements for the service instance's weight, hear
 **Usage process:**
 **Step1: **Register a service on the Polaris management platform page. Log in to the [Polaris management platform](http://192.127.0.0:8080/#/login) to register a service, remember the service_name, namespace, and token (the icon that looks like a fingerprint on the interface).
 **Step2: **Manually call the plugin registration and deregistration interface
-```
-// Remember to configure the environment before using the plugin function on the client side; no need for the server side
-// trpc::TrpcPlugin::GetInstance()->RegisterPlugins();
-
+```cpp
 trpc::TrpcRegistryInfo registry_info;
 // Required items
 registry_info.plugin_name = "polarismesh"; // Use the Polaris naming plugin
@@ -253,22 +253,20 @@ std::cout << registry_info.registry_info.meta["instance_id"];
 
 // Deregister the service instance, return 0 on success
 ret = trpc::naming::Unregister(registry_info);
-
-// trpc::TrpcPlugin::GetInstance()->UnregisterPlugins();
 ```
 
 # Polaris rate limiting plugin (limiter)
 ## Plugin registration location
-```limiter yaml
+```yaml
 # Plugin configuration
 plugins:
   limiter: # Rate limiting plugin configuration
-     polarismesh: # Polaris rate limiting plugin
-       updateCallResult: false # Whether to report call results (used for dynamic quota adjustment), if needed, set to true
-       mode: global  # Rate limiting mode, global or local, where global mode shares quotas among all instances, local mode does not share quotas (no need to access the backend quota server for dynamic calculation of remaining quotas)
-       rateLimitCluster:  # Rate limiting statistics cluster, required, specific configuration reference Polaris official rate limiting documentation (please replace xxx with the rate limiting statistics cluster you are accessing)
-         namespace: Devlopment
-         service: xxx
+    polarismesh: # Polaris rate limiting plugin
+      updateCallResult: false # Whether to report call results (used for dynamic quota adjustment), if needed, set to true
+      mode: global  # Rate limiting mode, global or local, where global mode shares quotas among all instances, local mode does not share quotas (no need to access the backend quota server for dynamic calculation of remaining quotas)
+      rateLimitCluster:  # Rate limiting statistics cluster, required, specific configuration reference Polaris official rate limiting documentation (please replace xxx with the rate limiting statistics cluster you are accessing)
+        namespace: Devlopment
+        service: xxx
 ```
 
 ## Rate limiting function
@@ -277,17 +275,17 @@ plugins:
 
 ### Server-side rate limiting
 **How to enable:**
-```
+```yaml
 server:
   service:
     - name: trpc.app.server.service
       filter:
-       - polarismesh_limiter
+        - polarismesh_limiter
 ```
 
 ### Client-side rate limiting
 **How to enable:**
-```
+```yaml
 client:
   service:
     - name: trpc.app.server.service
@@ -300,7 +298,7 @@ client:
 
 **Polaris interface configuration: **To configure rate limiting rules, please go to the Polaris management platform（http://192.127.0.0:8080）
 **Service configuration: **Here, choose to configure rate limiting on the client side
-```
+```yaml
 client:
   service:
     - name: trpc.hanqintrpctest.helloworld.Greeter
@@ -328,13 +326,13 @@ service Greeter {
 **Polaris interface configuration: **To configure rate limiting rules, please go to the Polaris management platform(http://192.127.0.0:8080).
 Since the PRC interface name is used for matching, fill in the dimension name as "method".
 **Service configuration: **Here, choose to configure rate limiting on the server side
-```
+```yaml
 server:
   service:
     - name: trpc.peggiezhutest.limiter.Greeter
       target: trpc.peggiezhutest.limiter.Greeter
       namespace: Development
-      ...
+       ...
       filter:
         - polarismesh_limiter
 plugins:

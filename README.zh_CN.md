@@ -10,7 +10,7 @@ tRPC-Cpp北极星插件分为**北极星路由选择插件**和**北极星服务
 已经支持的负载均衡策略：权重随机，一致性哈希。
 
 ## 插件注册位置
-```selector yaml
+```yaml
 #插件配置
 plugins:
   selector:  #路由选择配置
@@ -20,7 +20,7 @@ plugins:
 ## 调度策略
 北极星路由选择插件配置中，consumer配置项不配置时，框架默认开启下列所有调度策略。
 **注意：服务路由链是有顺序的（在上的先执行），所以默认配置筛选顺序为ruleRouter->nearbyRouter.**
-```selector yaml
+```yaml
 #插件配置
 plugins:
   selector:  #路由选择配置
@@ -52,8 +52,10 @@ step3：主调方在发起调用时，设置使用的规则路由标签：
 ```
 // 设置用于规则路由筛选的label
 std::map<std::string, std::string> ruleroute_label;
-ruleroute_label["key"] = "value";  // 这边key/value为用于规则路由筛选的label
-trpc::naming::polarismesh::SetFilterMetadataOfNaming(ruleroute_label, trpc::NamingMetadataType::kRuleRouteLable);  // 设置过规则路由滤标签到client_context(ClientContext对象)
+// 这边key/value为用于规则路由筛选的label
+ruleroute_label["key"] = "value";
+// 设置过规则路由滤标签到client_context(ClientContext对象)
+trpc::naming::polarismesh::SetFilterMetadataOfNaming(ruleroute_label, trpc::NamingMetadataType::kRuleRouteLable);
 ```
 
 ## 负载均衡策略
@@ -69,14 +71,15 @@ trpc::naming::polarismesh::SetFilterMetadataOfNaming(ruleroute_label, trpc::Nami
 ```
 trpc::ClientContextPtr ctx = trpc::MakeRefCounted<trpc::ClientContext>();
 trpc::naming::polarismesh::SetSelectorExtendInfo(ctx, std::make_pair("hash_key", "1"));
-trpc::Status status = prx->RpcMethod(ctx, ...);  // 发起rpc调用，prx为服务代理
+// 发起rpc调用，prx为服务代理
+trpc::Status status = prx->RpcMethod(ctx, ...);
 ```
 **step2: **显示指定哈希策略
 **注意：**对于新增业务，一致性哈希算法选择**ringhash**即可。至于modulohash, brpcmurmurhash等算法，一般是存量服务迁移时，希望不更改已经使用的一致性哈希算法才设置的（不同算法中同一个key对应的返回实例节点是不同的）。
 ringhash：对应北极星sdk的kLoadBalanceTypeRingHash
 modulohash：对应北极星sdk的kLoadBalanceTypeSimpleHash  // hash_key%总实例数 选择服务实例
 brpcmurmurhash：对应北极星sdk的kLoadBalanceTypeCMurmurHash // 兼容brpc c_murmur的一致性哈希
-```
+```yaml
 client:
   service:
     - name: trpc.peggiezhutest.helloworld.Greeter
@@ -88,7 +91,7 @@ client:
 
 #### hash环算法，返回对应key的相邻节点
 如果期望得到hash环算法（如ringhash）获取相邻节点，请显示调用ClientContext的SetReplicateIndex方法进行设置；不设置时ReplicateIndex默认为0，即返回hash key对应的当前节点。
-```
+```cpp
 trpc::ClientContextPtr ctx = trpc::MakeRefCounted<trpc::ClientContext>();
 // 设置使用的hashkey（不要求为整形数），不为空即可
 // 获取该hash key对应节点的第一个相邻节点（顺时针），传入2表示获取第二个相邻节点，以此类推
@@ -97,7 +100,7 @@ trpc::naming::polarismesh::SetSelectorExtendInfo(ctx, std::make_pair("hash_key",
 
 #### Locality-aware负载均衡算法
 对应框架配置如下：
-```
+```yaml
 client:
   service:
     - name: trpc.peggiezhutest.helloworld.Greeter
@@ -118,7 +121,7 @@ plugins:
           type: weightedRandom # 负载均衡类型(虽然具体使用的负载均衡算法是dynamicWeight，但这里要填基本的权重随机算法weightedRandom)
 ```
 **step2：**客户端调用
-```
+```yaml
 client:
   service:
     - name: trpc.peggiezhutest.helloworld.Greeter
@@ -128,8 +131,8 @@ client:
 ## 服务熔断
 北极星cpp sdk根据用户上报的节点调用情况，统计被调节点的某段时间的失败率和连续失败次数，如果满足熔断条件(连续失败多少次或失败率超标)就将节点加入熔断的实例列表，下次调度的时候就不算上熔断的节点。
 同时会对熔断的节点进行探活，当检测节点恢复时（如果不开启探活功能就间隔一段时间后），会设置为半开的状态（实例由不可用变成可用），然后优先返回给调用方，然后又依赖主调方上报，如果满足恢复条件就将熔断实例移出熔断列表。属于一种故障容错功能。
-```selector yaml
-#插件配置
+```yaml
+# 插件配置
 plugins:
   selector:  # 路由选择配置
     polarismesh:  # 北极星路由选择插件
@@ -151,8 +154,8 @@ plugins:
 提供服务实例注册，心跳上报功能。
 
 ## 插件注册位置
-```registry yaml
-#插件配置
+```yaml
+# 插件配置
 plugins:
   registry:  # 服务注册配置
     polarismesh:  # 北极星服务实例注册插件
@@ -165,13 +168,13 @@ plugins:
 - 如果service没有配置监听ip，则会检查service是否配置了nic（监听网卡名），框架会从对应网卡获取ip。
 
 在global配置中，需要有命名空间。
-```global yaml
-#全局配置
+```yaml
+# 全局配置
 global:
   namespace: ${namespace}    # 命名空间，如正式Production和非正式Development
 ```
 在server配置中，需要!!#ff0000 **添加配置registry_name为polaris**!!。
-```server yaml
+```yaml
 #服务端配置
 server:
   registry_name: polaris
@@ -179,11 +182,11 @@ server:
     - name: ${service_name}    # 服务在北极星上的服务名，注意区分这里和四段式命名的区别
       ip: ${ip}                # 监听ip
       nic: ${nic}              # 监听网卡名，用于通过网卡名获取ip(优先用ip，没有则用网卡获取ip)
-      port:${port}             # 监听port
+      port: ${port}             # 监听port
 ```
 在registry插件(plugins/registry)配置中，配置北极星心跳上报所需的信息(服务命名空间、服务名、token、instanceid)。
-```registry yaml
-#插件配置
+```yaml
+# 插件配置
 plugins:
   registry:  # 服务注册配置
     polarismesh:  # 北极星服务实例注册插件
@@ -202,11 +205,39 @@ plugins:
 **step1（申请一个北极星服务名）: **在北极星管理平台页面注册服务。通过登陆[北极星管理平台](http://192.127.0.0:8080/#/login)注册一个服务，记住服务名service_name，命名空间namespace以及token。
 **step2（让框架自动注册服务实例）: **填写对应的配置文件配置项
 server配置
-```server yaml
+```yaml
+# 服务端配置
+server:
+  registry_name: polaris       # 指定向哪个名字服务进行注册
+  service:
+    - name: ${service_name}    # 服务在北极星上的服务名，注意区分这里和四段式命名的区别
+      ip: ${ip}                # 监听ip
+      port: ${port}             # 监听port
+```
+register配置
+```yaml
+# 插件配置
+plugins:
+  registry:  # 服务注册配置
+    polarismesh:  # 北极星服务实例注册插件
+      service:
+        - name: ${service_name}          # 服务在北极星上的服务名
+          namespace: ${namespace}        # 命名空间
+          token: ${token}                # 服务token
+          metadata:                      # 服务实例的metadata
+            key1: value1
+            key2: value2
+```
+
+### 通过插件接口注册
+若业务对服务实例的权重，心跳检测周期等有特殊要求，建议直接调用名字服务插件的Register接口进行注册或者调用Unregister接口进行反注册。
+**使用流程：**
+**step1：**在北极星管理平台页面注册服务。通过登陆[北极星管理平台](http://192.127.0.0:8080/#/login)注册一个服务，记住服务名service_name，命名空间namespace以及token（界面上像指纹的图标）
+**step2：**手动调用插件注册与反注册接口
+```
 #服务端配置
 server:
   registry_name: polaris       # 指定向哪个名字服务进行注册
-  enable_self_register: true   # 开框架的自注册功能
   service:
     - name: ${service_name}    # 服务在北极星上的服务名，注意区分这里和四段式命名的区别
       ip: ${ip}                # 监听ip
@@ -218,6 +249,7 @@ register配置
 plugins:
   registry:  # 服务注册配置
     polarismesh:  # 北极星服务实例注册插件
+      register_self: true  # 北极星服务实例启动自注册
       service:
         - name: ${service_name}          # 服务在北极星上的服务名
           namespace: ${namespace}        # 命名空间
@@ -232,10 +264,7 @@ plugins:
 **使用流程：**
 **step1: **在北极星管理平台页面注册服务。通过登陆[北极星管理平台](http://192.127.0.0:8080/#/login)注册一个服务，记住服务名service_name，命名空间namespace以及token（界面上像指纹的图标）
 **step2: **手动调用插件注册与反注册接口
-```
-// 客户端使用插件功能前记得配置环境，服务端不需要
-// trpc::TrpcPlugin::GetInstance()->RegisterPlugins();
-
+```cpp
 trpc::TrpcRegistryInfo registry_info;
 // 必填项
 registry_info.plugin_name = "polarismesh"; // 使用北极星naming插件
@@ -258,8 +287,8 @@ ret = trpc::naming::Unregister(registry_info);
 # 北极星限流插件（limiter）
 
 ## 插件注册位置
-```limiter yaml
-#插件配置
+```yaml
+# 插件配置
 plugins:
   limiter: # 限流插件配置
     polarismesh: # 北极星限流插件
@@ -276,17 +305,17 @@ plugins:
 
 ### 服务端限流
 **开启方式**：
-```
+```yaml
 server:
   service:
     - name: trpc.app.server.service
       filter:
-       - polarismesh_limiter
+        - polarismesh_limiter
 ```
 
 ### 客户端限流
 **开启方式**：
-```
+```yaml
 client:
   service:
     - name: trpc.app.server.service
@@ -299,7 +328,7 @@ client:
 
 **北极星界面配置：**配置限流规则请移步到北极星管理平台（http://192.127.0.0:8080）
 **服务配置：**这里选择在客户端做限流配置
-```
+```yaml
 client:
   service:
     - name: trpc.hanqintrpctest.helloworld.Greeter
@@ -328,13 +357,13 @@ service Greeter {
 **北极星界面配置：**配置限流规则请移步到北极星管理平台（http://192.127.0.0:8080）
 因为是采用PRC接口名做匹配，维度名称填“method”。
 **服务配置：**这里选择在服务端做限流配置
-```
+```yaml
 server:
   service:
     - name: trpc.peggiezhutest.limiter.Greeter
       target: trpc.peggiezhutest.limiter.Greeter
       namespace: Development
-      ...
+       ...
       filter:
         - polarismesh_limiter
 plugins:
