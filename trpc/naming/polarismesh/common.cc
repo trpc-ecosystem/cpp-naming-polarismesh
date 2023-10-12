@@ -39,7 +39,7 @@ bool InCircuitBreakWhiteList(trpc::ReadersWriterData<std::set<int>>& whitelist, 
 
 namespace trpc {
 
-void SetPolarisSelectorConf(trpc::naming::PolarisNamingConfig& config) {
+void SetPolarisMeshSelectorConf(trpc::naming::PolarisMeshNamingConfig& config) {
   if (!trpc::TrpcConfig::GetInstance()->GetPluginConfig<trpc::naming::SelectorConfig>("selector", "polarismesh",
                                                                                       config.selector_config)) {
     TRPC_FMT_ERROR("get selector polarismesh config error, use default value");

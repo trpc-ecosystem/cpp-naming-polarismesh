@@ -11,7 +11,7 @@
 //
 //
 
-#include "trpc/naming/polarismesh/polaris_limiter_client_filter.h"
+#include "trpc/naming/polarismesh/polarismesh_limiter_server_filter.h"
 
 #include <pthread.h>
 #include <stdint.h>
@@ -27,27 +27,19 @@
 #include "polaris/utils/string_utils.h"
 #include "yaml-cpp/yaml.h"
 
+#include "trpc/codec/trpc/trpc_protocol.h"
 #include "trpc/common/config/trpc_config.h"
 #include "trpc/common/trpc_plugin.h"
 #include "trpc/filter/filter_manager.h"
-#include "trpc/naming/polarismesh/mock_polaris_api_test.h"
-#include "trpc/naming/polarismesh/polaris_limiter.h"
-#include "trpc/util/time.h"
+#include "trpc/naming/polarismesh/mock_polarismesh_api_test.h"
+#include "trpc/naming/polarismesh/polarismesh_limiter.h"
+#include "trpc/server/rpc_service_impl.h"
+#include "trpc/server/testing/service_adapter_testing.h"
 
-namespace trpc::testing {
+namespace trpc {
+namespace testing {
 
-class MockProtocol : public Protocol {
- public:
-  MOCK_CONST_METHOD1(GetRequestId, bool(uint32_t&));
-
-  MOCK_METHOD1(SetRequestId, bool(uint32_t));
-
-  /// @brief Decodes or encodes a protocol message (zero copy).
-  virtual bool ZeroCopyDecode(NoncontiguousBuffer& buff) { return true; };
-  virtual bool ZeroCopyEncode(NoncontiguousBuffer& buff) { return true; };
-};
-
-class PolarisLimiterClientFilterTest : public polaris::MockServerConnectorTest {
+class PolarisMeshLimiterServerFilterTest : public polaris::MockServerConnectorTest {
  protected:
   static void SetUpTestCase() { trpc::TrpcPlugin::GetInstance()->RegisterPlugins(); }
 
@@ -56,10 +48,10 @@ class PolarisLimiterClientFilterTest : public polaris::MockServerConnectorTest {
   virtual void SetUp() {
     MockServerConnectorTest::SetUp();
     ASSERT_TRUE(polaris::TestUtils::CreateTempDir(persist_dir_));
-    InitPolarisLimiter();
+    InitPolarisMeshLimiter();
     InitServiceNormalData();
-    polaris_limiter_client_filter_ = FilterManager::GetInstance()->GetMessageClientFilter("polaris_limiter");
-    ASSERT_TRUE(nullptr != polaris_limiter_client_filter_);
+    polarismesh_limiter_server_filter_ = FilterManager::GetInstance()->GetMessageServerFilter("polarismesh_limiter");
+    ASSERT_TRUE(nullptr != polarismesh_limiter_server_filter_);
   }
 
   virtual void TearDown() {
@@ -71,10 +63,10 @@ class PolarisLimiterClientFilterTest : public polaris::MockServerConnectorTest {
     MockServerConnectorTest::TearDown();
   }
 
-  void InitPolarisLimiter() {
+  void InitPolarisMeshLimiter() {
     PolarisNamingTestConfigSwitch default_Switch;
     default_Switch.need_ratelimiter = true;
-    YAML::Node root = YAML::Load(trpc::buildPolarisNamingConfig(default_Switch));
+    YAML::Node root = YAML::Load(trpc::buildPolarisMeshNamingConfig(default_Switch));
     YAML::Node ratelimiter_node = root["limiter"];
     trpc::naming::RateLimiterConfig ratelimiter_config =
         ratelimiter_node["polarismesh"].as<trpc::naming::RateLimiterConfig>();
@@ -96,15 +88,15 @@ class PolarisLimiterClientFilterTest : public polaris::MockServerConnectorTest {
     std::string orig_ratelimiter_config = strstream.str();
     orig_selector_config += orig_ratelimiter_config;
 
-    trpc::naming::PolarisNamingConfig naming_config;
+    trpc::naming::PolarisMeshNamingConfig naming_config;
     naming_config.name = "polarismesh";
     naming_config.ratelimiter_config = ratelimiter_config;
     naming_config.orig_selector_config = orig_selector_config;
     naming_config.Display();
 
-    PolarisLimiterPtr p = MakeRefCounted<trpc::PolarisLimiter>();
+    trpc::RefPtr<trpc::PolarisMeshLimiter> p = MakeRefCounted<trpc::PolarisMeshLimiter>();
     trpc::LimiterFactory::GetInstance()->Register(p);
-    limiter_ = static_pointer_cast<PolarisLimiter>(trpc::LimiterFactory::GetInstance()->Get("polarismesh"));
+    limiter_ = static_pointer_cast<PolarisMeshLimiter>(trpc::LimiterFactory::GetInstance()->Get("polarismesh"));
     EXPECT_EQ(p.get(), limiter_.get());
 
     limiter_->SetPluginConfig(naming_config);
@@ -112,12 +104,13 @@ class PolarisLimiterClientFilterTest : public polaris::MockServerConnectorTest {
     ASSERT_EQ(0, limiter_->Init());
     EXPECT_TRUE("" != p->Version());
 
-    MessageClientFilterPtr polaris_limiter_client_filter(new PolarisLimiterClientFilter());
-    polaris_limiter_client_filter->Init();
-    FilterManager::GetInstance()->AddMessageClientFilter(polaris_limiter_client_filter);
+    MessageServerFilterPtr polarismesh_limiter_server_filter(new PolarisMeshLimiterServerFilter());
+    polarismesh_limiter_server_filter->Init();
+    FilterManager::GetInstance()->AddMessageServerFilter(polarismesh_limiter_server_filter);
 
     service_key_.name_ = "test.service";
-    service_key_.namespace_ = kPolarisNamespaceTest;
+    // The current -limited interceptor of the server reads the environment name in the Global configuration
+    service_key_.namespace_ = "Development";
   }
 
   void InitServiceNormalData() {
@@ -169,62 +162,67 @@ class PolarisLimiterClientFilterTest : public polaris::MockServerConnectorTest {
   }
 
  protected:
-  trpc::PolarisLimiterPtr limiter_;
-  MessageClientFilterPtr polaris_limiter_client_filter_;
+  trpc::PolarisMeshLimiterPtr limiter_;
+  MessageServerFilterPtr polarismesh_limiter_server_filter_;
   v1::DiscoverResponse limit_response_;
   polaris::ServiceKey service_key_;
   std::string persist_dir_;
   std::vector<pthread_t> event_thread_list_;
 };
 
-TEST_F(PolarisLimiterClientFilterTest, Name) { ASSERT_EQ("polaris_limiter", polaris_limiter_client_filter_->Name()); }
+TEST_F(PolarisMeshLimiterServerFilterTest, Name) { ASSERT_EQ("polarismesh_limiter", polarismesh_limiter_server_filter_->Name()); }
 
-TEST_F(PolarisLimiterClientFilterTest, GetFilterPointTest) {
-  auto points = polaris_limiter_client_filter_->GetFilterPoint();
+TEST_F(PolarisMeshLimiterServerFilterTest, GetFilterPointTest) {
+  auto points = polarismesh_limiter_server_filter_->GetFilterPoint();
   ASSERT_EQ(2, points.size());
-  ASSERT_EQ(points[0], FilterPoint::CLIENT_PRE_RPC_INVOKE);
-  ASSERT_EQ(points[1], FilterPoint::CLIENT_POST_RPC_INVOKE);
+  ASSERT_EQ(points[0], FilterPoint::SERVER_PRE_RPC_INVOKE);
+  ASSERT_EQ(points[1], FilterPoint::SERVER_POST_RPC_INVOKE);
 }
 
-TEST_F(PolarisLimiterClientFilterTest, operator) {
+TEST_F(PolarisMeshLimiterServerFilterTest, operator) {
   EXPECT_CALL(*polaris::MockServerConnectorTest::server_connector_,
               RegisterEventHandler(::testing::Eq(service_key_), ::testing::_, ::testing::_, ::testing::_, ::testing::_))
       .Times(1)
-      .WillRepeatedly(::testing::DoAll(::testing::Invoke(this, &PolarisLimiterClientFilterTest::MockFireEventHandler),
+      .WillRepeatedly(::testing::DoAll(::testing::Invoke(this, &PolarisMeshLimiterServerFilterTest::MockFireEventHandler),
                                        ::testing::Return(polaris::kReturnOk)));
 
-  // You must initialize the request before you can be selected
-  ProtocolPtr request = std::make_shared<MockProtocol>();
-  auto context = MakeRefCounted<ClientContext>();
-  context->SetRequest(request);
-  ServiceProxyOption option;
-  option.name = service_key_.name_;
-  option.target = service_key_.name_;
-  option.name_space = service_key_.namespace_;
-  context->SetServiceProxyOption(&option);
-  context->SetFuncName("hello");
-  context->SetSendTimestampUs(trpc::time::GetMicroSeconds());
+  // Initialize the environment name in the Global configuration
+  auto ret = trpc::TrpcConfig::GetInstance()->Init("./trpc/naming/polarismesh/testing/polarismesh_test.yaml");
+  ASSERT_EQ(0, ret);
+  ASSERT_EQ(service_key_.namespace_, TrpcConfig::GetInstance()->GetGlobalConfig().env_namespace);
+
+  auto context = MakeRefCounted<ServerContext>();
+  context->SetRequestMsg(std::make_shared<TrpcRequestProtocol>());
+  ServicePtr service = std::make_shared<RpcServiceImpl>();
+  trpc::ServiceAdapterOption option;
+  option.protocol = "trpc";
+  option.service_name = service_key_.name_;
+  trpc::ServiceAdapter adapter(std::move(option));
+  trpc::testing::FillServiceAdapter(&adapter, service_key_.name_, service);
+  context->SetService(service.get());
+  context->SetFuncName("/test.service/hello");
 
   FilterStatus status;
   // When the current report function is closed, the report is reported directly to return
-  polaris_limiter_client_filter_->operator()(status, FilterPoint::CLIENT_POST_RPC_INVOKE, context);
+  polarismesh_limiter_server_filter_->operator()(status, FilterPoint::SERVER_POST_RPC_INVOKE, context);
   ASSERT_EQ(FilterStatus::CONTINUE, status);
 
-  // Read the configuration, turn on the restrictions on the reporting function
-  auto ret = trpc::TrpcConfig::GetInstance()->Init("./trpc/naming/polarismesh/testing/polaris_test.yaml");
-  ASSERT_EQ(0, ret);
-  polaris_limiter_client_filter_->Init();
+  // Re -read the configuration item, turn on the restrictions on the reporting function
+  polarismesh_limiter_server_filter_->Init();
 
   // The first request quota within 1 second, pass
-  polaris_limiter_client_filter_->operator()(status, FilterPoint::CLIENT_PRE_RPC_INVOKE, context);
+  polarismesh_limiter_server_filter_->operator()(status, FilterPoint::SERVER_PRE_RPC_INVOKE, context);
   ASSERT_EQ(FilterStatus::CONTINUE, status);
+
   // Report
-  polaris_limiter_client_filter_->operator()(status, FilterPoint::CLIENT_POST_RPC_INVOKE, context);
+  polarismesh_limiter_server_filter_->operator()(status, FilterPoint::SERVER_POST_RPC_INVOKE, context);
   ASSERT_EQ(FilterStatus::CONTINUE, status);
 
   // The second request quota within 1 second, was rejected
-  polaris_limiter_client_filter_->operator()(status, FilterPoint::CLIENT_PRE_RPC_INVOKE, context);
+  polarismesh_limiter_server_filter_->operator()(status, FilterPoint::SERVER_PRE_RPC_INVOKE, context);
   ASSERT_EQ(FilterStatus::REJECT, status);
 }
 
-}  // namespace trpc::testing
+}  // namespace testing
+
+}  // namespace trpc

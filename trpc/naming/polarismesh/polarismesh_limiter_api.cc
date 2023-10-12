@@ -11,20 +11,20 @@
 //
 //
 
-#include "trpc/naming/polarismesh/polaris_limiter_api.h"
+#include "trpc/naming/polarismesh/polarismesh_limiter_api.h"
 
 #include "trpc/common/trpc_plugin.h"
 
-#include "trpc/naming/polarismesh/polaris_limiter.h"
-#include "trpc/naming/polarismesh/polaris_limiter_client_filter.h"
-#include "trpc/naming/polarismesh/polaris_limiter_server_filter.h"
+#include "trpc/naming/polarismesh/polarismesh_limiter.h"
+#include "trpc/naming/polarismesh/polarismesh_limiter_client_filter.h"
+#include "trpc/naming/polarismesh/polarismesh_limiter_server_filter.h"
 
 namespace trpc::polarismesh::limiter {
 
 bool Init() {
-  TrpcPlugin::GetInstance()->RegisterLimiter(MakeRefCounted<PolarisLimiter>());
-  TrpcPlugin::GetInstance()->RegisterClientFilter(std::make_shared<PolarisLimiterClientFilter>());
-  TrpcPlugin::GetInstance()->RegisterServerFilter(std::make_shared<PolarisLimiterServerFilter>());
+  TrpcPlugin::GetInstance()->RegisterLimiter(MakeRefCounted<PolarisMeshLimiter>());
+  TrpcPlugin::GetInstance()->RegisterClientFilter(std::make_shared<PolarisMeshLimiterClientFilter>());
+  TrpcPlugin::GetInstance()->RegisterServerFilter(std::make_shared<PolarisMeshLimiterServerFilter>());
 
   return true;
 }
