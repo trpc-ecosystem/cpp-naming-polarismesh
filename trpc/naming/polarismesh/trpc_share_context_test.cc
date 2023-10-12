@@ -15,7 +15,7 @@
 
 #include "gtest/gtest.h"
 
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 
 namespace trpc {
 
@@ -23,7 +23,7 @@ TEST(TrpcShareContext, InitAndDestory) {
   trpc::TrpcShareContext& trpc_share_context = *trpc::TrpcShareContext::GetInstance();
 
   // Illegal Config enters the paragraph, and the creation failed
-  trpc::naming::PolarisNamingConfig bad_config;
+  trpc::naming::PolarisMeshNamingConfig bad_config;
   bad_config.orig_selector_config = "[,,,";
   ASSERT_EQ(-1, trpc_share_context.Init(bad_config));
 
@@ -39,7 +39,7 @@ TEST(TrpcShareContext, InitAndDestory) {
   ASSERT_TRUE(trpc_share_context.GetServerConnector() == nullptr);
 
   // The correct config enters the parameters, and the creation is successful
-  trpc::naming::PolarisNamingConfig right_config;
+  trpc::naming::PolarisMeshNamingConfig right_config;
   right_config.orig_selector_config =
       "global:\n"
       "  serverConnector:\n"

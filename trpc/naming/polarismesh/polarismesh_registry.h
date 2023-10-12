@@ -23,15 +23,15 @@
 
 #include "trpc/naming/common/common_defs.h"
 #include "trpc/naming/polarismesh/common.h"
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 #include "trpc/naming/registry.h"
 
 namespace trpc {
 
 /// @brief h SDK Heartbeat Reporting Asynchronous Return
-class PolarisHeartbeatCallback : public polaris::ProviderCallback {
+class PolarisMeshHeartbeatCallback : public polaris::ProviderCallback {
  public:
-  explicit PolarisHeartbeatCallback(polaris::ServiceKey& service_key) : service_key_(service_key) {}
+  explicit PolarisMeshHeartbeatCallback(polaris::ServiceKey& service_key) : service_key_(service_key) {}
 
   void Response(polaris::ReturnCode code, const std::string& message) override {
     if (code != polaris::ReturnCode::kReturnOk) {
@@ -52,7 +52,7 @@ class PolarisHeartbeatCallback : public polaris::ProviderCallback {
 };
 
 /// @brief polarismesh Service Registration Plug -in
-class PolarisRegistry : public Registry {
+class PolarisMeshRegistry : public Registry {
  public:
   /// @brief The name of the plugin
   std::string Name() const override { return kPolarisPluginName; }
@@ -87,28 +87,28 @@ class PolarisRegistry : public Registry {
   Future<> AsyncHeartBeat(const RegistryInfo* info) override;
 
   /// @brief Setter function for plugin_config_
-  void SetPluginConfig(const naming::PolarisNamingConfig& config) {
+  void SetPluginConfig(const naming::PolarisMeshNamingConfig& config) {
     plugin_config_ = config;
   }
 
  protected:
   /// @brief Remry config to complete the token information
-  int GetTokenFromRegistryConfig(PolarisRegistryInfo& polaris_registry_info);
+  int GetTokenFromRegistryConfig(PolarisMeshRegistryInfo& polarismesh_registry_info);
 
   /// @brief Make up META information from registry config
-  void GetMetadataFromRegistryConfig(PolarisRegistryInfo& polaris_registry_info);
+  void GetMetadataFromRegistryConfig(PolarisMeshRegistryInfo& polarismesh_registry_info);
 
-  PolarisRegistryInfo SetupPolarisRegistryInfo(const RegistryInfo& info);
+  PolarisMeshRegistryInfo SetupPolarisMeshRegistryInfo(const RegistryInfo& info);
 
  private:
   bool init_{false};
   uint64_t heartbeat_interval_;
   uint64_t heartbeat_timeout_;
-  naming::PolarisNamingConfig plugin_config_;
+  naming::PolarisMeshNamingConfig plugin_config_;
   std::map<polaris::ServiceKey, trpc::naming::ServiceConfig> services_config_;
   std::unique_ptr<polaris::ProviderApi> provider_api_{nullptr};
 };
 
-using PolarisRegistryPtr = RefPtr<PolarisRegistry>;
+using PolarisMeshRegistryPtr = RefPtr<PolarisMeshRegistry>;
 
 }  // namespace trpc

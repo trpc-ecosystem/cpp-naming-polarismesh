@@ -23,16 +23,16 @@
 
 namespace trpc {
 
-int TrpcShareContext::Init(const trpc::naming::PolarisNamingConfig& config) {
+int TrpcShareContext::Init(const trpc::naming::PolarisMeshNamingConfig& config) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (init_) {
     TRPC_FMT_DEBUG("Already init");
     return 0;
   }
   std::string err_msg;
-  std::shared_ptr<polaris::Config> polaris_config(
+  std::shared_ptr<polaris::Config> polarismesh_config(
       polaris::Config::CreateFromString(config.orig_selector_config, err_msg));
-  if (!polaris_config) {
+  if (!polarismesh_config) {
     TRPC_FMT_ERROR("Create polarismesh config failed, error:{}", err_msg);
     return -1;
   }
@@ -41,9 +41,9 @@ int TrpcShareContext::Init(const trpc::naming::PolarisNamingConfig& config) {
   polaris::RegisterPlugin("trpc", polaris::kPluginServerMetric, trpc::TrpcServerMetricFactory);
 
   // Initialize the polarismesh Context
-  polaris_context_ = std::shared_ptr<polaris::Context>(
-      polaris::Context::Create(polaris_config.get(), polaris::ContextMode::kShareContext));
-  if (!polaris_context_) {
+  polarismesh_context_ = std::shared_ptr<polaris::Context>(
+      polaris::Context::Create(polarismesh_config.get(), polaris::ContextMode::kShareContext));
+  if (!polarismesh_context_) {
     TRPC_FMT_ERROR("Create polarismesh context failed");
     return -1;
   }
@@ -59,13 +59,13 @@ void TrpcShareContext::Destroy() {
     return;
   }
 
-  polaris_context_ = nullptr;
+  polarismesh_context_ = nullptr;
   init_ = false;
 }
 
 polaris::ServerConnector* TrpcShareContext::GetServerConnector() {
-  if (polaris_context_) {
-    auto server_connector = polaris_context_->GetContextImpl()->GetServerConnector();
+  if (polarismesh_context_) {
+    auto server_connector = polarismesh_context_->GetContextImpl()->GetServerConnector();
     if (server_connector) {
       polaris::ServerConnector* p = dynamic_cast<polaris::ServerConnector*>(server_connector);
       return p;

@@ -11,20 +11,14 @@
 //
 //
 
-#include "trpc/naming/polarismesh/polaris_selector_api.h"
+#include "trpc/naming/selector_factory.h"
 
-#include "trpc/common/trpc_plugin.h"
+#include "trpc/naming/polarismesh/polarismesh_selector.h"
 
-#include "trpc/naming/polarismesh/polaris_selector.h"
-#include "trpc/naming/polarismesh/polaris_selector_filter.h"
+#pragma once
 
 namespace trpc::polarismesh::selector {
 
-bool Init() {
-  TrpcPlugin::GetInstance()->RegisterSelector(MakeRefCounted<PolarisSelector>());
-  TrpcPlugin::GetInstance()->RegisterClientFilter(std::make_shared<PolarisSelectorFilter>());
-
-  return true;
-}
+bool Init();
 
 }  // namespace trpc::polarismesh::selector

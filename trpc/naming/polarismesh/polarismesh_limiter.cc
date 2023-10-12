@@ -11,7 +11,7 @@
 //
 //
 
-#include "trpc/naming/polarismesh/polaris_limiter.h"
+#include "trpc/naming/polarismesh/polarismesh_limiter.h"
 
 #include <any>
 #include <utility>
@@ -20,24 +20,24 @@
 #include "polaris/context.h"
 
 #include "trpc/codec/trpc/trpc.pb.h"
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 #include "trpc/naming/polarismesh/trpc_share_context.h"
 
 namespace trpc {
 
-int PolarisLimiter::Init() noexcept {
+int PolarisMeshLimiter::Init() noexcept {
   if (init_) {
     TRPC_FMT_DEBUG("Already init");
     return 0;
   }
 
   if (plugin_config_.name.empty()) {
-    trpc::naming::PolarisNamingConfig config;
-    SetPolarisSelectorConf(config);
+    trpc::naming::PolarisMeshNamingConfig config;
+    SetPolarisMeshSelectorConf(config);
     plugin_config_ = config;
   }
 
-  auto config = std::any_cast<trpc::naming::PolarisNamingConfig>(plugin_config_);
+  auto config = std::any_cast<trpc::naming::PolarisMeshNamingConfig>(plugin_config_);
   if (trpc::TrpcShareContext::GetInstance()->Init(config) != 0) {
     return -1;
   }
@@ -53,7 +53,7 @@ int PolarisLimiter::Init() noexcept {
   return 0;
 }
 
-void PolarisLimiter::Destroy() noexcept {
+void PolarisMeshLimiter::Destroy() noexcept {
   if (!init_) {
     TRPC_FMT_DEBUG("No init yet");
     return;
@@ -66,7 +66,7 @@ void PolarisLimiter::Destroy() noexcept {
 }
 
 // Simultaneously obtain a current -limiting state interface
-LimitRetCode PolarisLimiter::ShouldLimit(const LimitInfo* info) {
+LimitRetCode PolarisMeshLimiter::ShouldLimit(const LimitInfo* info) {
   if (!init_) {
     TRPC_FMT_ERROR("No init yet");
     return LimitRetCode::kLimitError;
@@ -123,7 +123,7 @@ polaris::LimitCallResultType GetCallResultType(trpc::LimitRetCode limit_ret_code
   return polaris::LimitCallResultType::kLimitCallResultFailed;
 }
 
-int PolarisLimiter::FinishLimit(const LimitResult* result) {
+int PolarisMeshLimiter::FinishLimit(const LimitResult* result) {
   // Extension function: Automatically report the current limit result for the dynamic threshold adjustment of the polar
   // star for the current limit rule You need to configure the UpdateCallResult in the configuration to true
   if (!plugin_config_.ratelimiter_config.update_call_result) {
