@@ -34,9 +34,9 @@ namespace trpc {
 
 namespace naming::polarismesh {
 
-/// @brief GetPolarisSelectorPluginID() is a getter function to access the global variable
-/// @return The PluginID of the PolarisSelector instance as uint32_t.
-uint32_t GetPolarisSelectorPluginID();
+/// @brief GetPolarisMeshSelectorPluginID() is a getter function to access the global variable
+/// @return The PluginID of the PolarisMeshSelector instance as uint32_t.
+uint32_t GetPolarisMeshSelectorPluginID();
 
 /// @brief Sets selector-related extend properties in the context's filter data
 /// This function allows users to set multiple key-value pairs related to the selector.
@@ -55,11 +55,11 @@ uint32_t GetPolarisSelectorPluginID();
 template <typename T, typename... Args>
 void SetSelectorExtendInfo(T& context, Args&&... key_value_pairs) {
   auto* data_map = context->template GetFilterData<std::unordered_map<std::string,
-                                                                      std::string>>(GetPolarisSelectorPluginID());
+                                                                      std::string>>(GetPolarisMeshSelectorPluginID());
   if (!data_map) {
     std::unordered_map<std::string, std::string> new_data_map;
     (new_data_map.emplace(std::forward<Args>(key_value_pairs)), ...);
-    context->SetFilterData(GetPolarisSelectorPluginID(), std::move(new_data_map));
+    context->SetFilterData(GetPolarisMeshSelectorPluginID(), std::move(new_data_map));
   } else {
     (data_map->emplace(std::forward<Args>(key_value_pairs)), ...);
   }
@@ -83,7 +83,7 @@ void SetSelectorExtendInfo(T& context, Args&&... key_value_pairs) {
 template <typename T>
 std::string GetSelectorExtendInfo(T& context, const std::string& key) {
   auto* data_map = context->template GetFilterData<std::unordered_map<std::string,
-                                                                      std::string>>(GetPolarisSelectorPluginID());
+                                                                      std::string>>(GetPolarisMeshSelectorPluginID());
   if (data_map) {
     auto it = data_map->find(key);
     if (it != data_map->end()) {
@@ -104,7 +104,7 @@ void SetFilterMetadataOfNaming(T& context, const std::map<std::string,
   const std::string key = "metadata_" + std::to_string(static_cast<int>(type));
 
   auto* data_map = context->template GetFilterData<std::unordered_map<std::string,
-                                                                      std::string>>(GetPolarisSelectorPluginID());
+                                                                      std::string>>(GetPolarisMeshSelectorPluginID());
   if (!data_map) {
     std::unordered_map<std::string, std::string> new_data_map;
 
@@ -118,7 +118,7 @@ void SetFilterMetadataOfNaming(T& context, const std::map<std::string,
     json_metadata.Accept(writer);
 
     new_data_map.emplace(key, buffer.GetString());
-    context->SetFilterData(GetPolarisSelectorPluginID(), std::move(new_data_map));
+    context->SetFilterData(GetPolarisMeshSelectorPluginID(), std::move(new_data_map));
   } else {
     rapidjson::Document json_metadata(rapidjson::kObjectType);
     rapidjson::Document::AllocatorType& allocator = json_metadata.GetAllocator();
@@ -142,7 +142,7 @@ const std::map<std::string, std::string>* GetFilterMetadataOfNaming(T& context, 
   const std::string key = "metadata_" + std::to_string(static_cast<int>(type));
 
   auto* data_map = context->template GetFilterData<std::unordered_map<std::string,
-                                                                      std::string>>(GetPolarisSelectorPluginID());
+                                                                      std::string>>(GetPolarisMeshSelectorPluginID());
   if (data_map) {
     auto it = data_map->find(key);
     if (it != data_map->end()) {
@@ -161,8 +161,8 @@ const std::map<std::string, std::string>* GetFilterMetadataOfNaming(T& context, 
 
 }  // namespace naming::polarismesh
 
-/// @brief polarismesh service discovery plug -in
-class PolarisSelector : public Selector {
+/// @brief polarismesh service discovery plugin
+class PolarisMeshSelector : public Selector {
  public:
   /// @brief The name of the plugin
   std::string Name() const override { return kPolarisPluginName; }
@@ -206,7 +206,7 @@ class PolarisSelector : public Selector {
   bool SetCircuitBreakWhiteList(const std::vector<int>& framework_retcodes) override;
   
   /// @brief Setter function for plugin_config_
-  void SetPluginConfig(const naming::PolarisNamingConfig& config) {
+  void SetPluginConfig(const naming::PolarisMeshNamingConfig& config) {
     plugin_config_ = config;
   }
 
@@ -218,7 +218,7 @@ class PolarisSelector : public Selector {
 
  private:
   // Get the specific implementation of the service node from the SDK GetoneInstance interface
-  int SelectImpl(const SelectorInfo* info, polaris::InstancesResponse*& polaris_response_info);
+  int SelectImpl(const SelectorInfo* info, polaris::InstancesResponse*& polarismesh_response_info);
 
   // Set the main service information
   void FillMetadataOfSourceServiceInfo(const SelectorInfo* info, polaris::ServiceInfo& source_service_info);
@@ -244,7 +244,7 @@ class PolarisSelector : public Selector {
 
   // The TRPC protocol transmission field is passed to the polarismesh for the switch used by Meta matching. The meta
   // format is "Selector-Meta-"
-  bool enable_polaris_trans_meta_{false};
+  bool enable_polarismesh_trans_meta_{false};
 
   // Framework error code fuse whitelist
   ReadersWriterData<std::set<int>> circuitbreak_whitelist_;
@@ -252,8 +252,8 @@ class PolarisSelector : public Selector {
   // Service discovery timeout time, compatible with old configuration logic
   uint64_t timeout_;
 
-  naming::PolarisNamingConfig plugin_config_;
-  std::shared_ptr<polaris::Context> polaris_context_{nullptr};
+  naming::PolarisMeshNamingConfig plugin_config_;
+  std::shared_ptr<polaris::Context> polarismesh_context_{nullptr};
   std::unique_ptr<polaris::ConsumerApi> consumer_api_{nullptr};
 
   struct PolarisRuleRouteRaw {
@@ -273,6 +273,6 @@ class PolarisSelector : public Selector {
   static thread_local std::unordered_map<std::string, PolarisRuleRouteRaw> source_route_rule_map_;
 };
 
-using PolarisSelectorPtr = RefPtr<PolarisSelector>;
+using PolarisMeshSelectorPtr = RefPtr<PolarisMeshSelector>;
 
 }  // namespace trpc

@@ -61,7 +61,7 @@ TEST(TransResultTest, TransMeta) {
   ASSERT_TRUE(endpoint_info_no_meta.meta.empty());
 }
 
-TEST(ConvertToPolarisRegistryInfoTest, Run) {
+TEST(ConvertToPolarisMeshRegistryInfoTest, Run) {
   RegistryInfo registry_info;
   registry_info.name = "test";
   registry_info.host = "127.0.0.1";
@@ -76,8 +76,8 @@ TEST(ConvertToPolarisRegistryInfoTest, Run) {
   registry_info.meta["health_check_type"] = "1";
   registry_info.meta["ttl"] = "5";
 
-  PolarisRegistryInfo polaris_info;
-  ConvertToPolarisRegistryInfo(registry_info, polaris_info);
+  PolarisMeshRegistryInfo polaris_info;
+  ConvertToPolarisMeshRegistryInfo(registry_info, polaris_info);
   ASSERT_EQ("test", polaris_info.service_name);
   ASSERT_EQ("127.0.0.1", polaris_info.host);
   ASSERT_EQ(1234, polaris_info.port);
@@ -99,11 +99,11 @@ TEST(ServiceKeyTest, Compare) {
   ASSERT_EQ(false, ServiceKeyEqual(service_key1, service_key2));
 }
 
-TEST(SetPolarisSelectorConfTest, Run) {
-  int ret = TrpcConfig::GetInstance()->Init("./trpc/naming/polarismesh/testing/polaris_test.yaml");
+TEST(SetPolarisMeshSelectorConfTest, Run) {
+  int ret = TrpcConfig::GetInstance()->Init("./trpc/naming/polarismesh/testing/polarismesh_test.yaml");
   ASSERT_EQ(0, ret);
-  trpc::naming::PolarisNamingConfig config;
-  SetPolarisSelectorConf(config);
+  trpc::naming::PolarisMeshNamingConfig config;
+  SetPolarisMeshSelectorConf(config);
   ASSERT_NE(0, config.orig_selector_config.size());
 }
 

@@ -11,7 +11,7 @@
 //
 //
 
-#include "trpc/naming/polarismesh/polaris_selector.h"
+#include "trpc/naming/polarismesh/polarismesh_selector.h"
 
 #include <pthread.h>
 #include <stdint.h>
@@ -24,7 +24,7 @@
 #include "polaris/utils/time_clock.h"
 #include "yaml-cpp/yaml.h"
 
-#include "trpc/naming/polarismesh/mock_polaris_api_test.h"
+#include "trpc/naming/polarismesh/mock_polarismesh_api_test.h"
 #include "trpc/naming/registry_factory.h"
 #include "trpc/naming/selector.h"
 #include "trpc/naming/selector_factory.h"
@@ -48,7 +48,7 @@ class PolarisSelectTest : public polaris::MockServerConnectorTest {
   virtual void SetUp() {
     MockServerConnectorTest::SetUp();
     ASSERT_TRUE(polaris::TestUtils::CreateTempDir(persist_dir_));
-    InitPolarisSelector();
+    InitPolarisMeshSelector();
   }
 
   virtual void TearDown() {
@@ -60,11 +60,11 @@ class PolarisSelectTest : public polaris::MockServerConnectorTest {
     MockServerConnectorTest::TearDown();
   }
 
-  void InitPolarisSelector() {
+  void InitPolarisMeshSelector() {
     PolarisNamingTestConfigSwitch default_Switch;
     // Turn on metadata route plug -in
     default_Switch.need_dstMetaRouter = true;
-    YAML::Node root = YAML::Load(trpc::buildPolarisNamingConfig(default_Switch));
+    YAML::Node root = YAML::Load(trpc::buildPolarisMeshNamingConfig(default_Switch));
     YAML::Node selector_node = root["selector"];
     trpc::naming::SelectorConfig selector_config = selector_node["polarismesh"].as<trpc::naming::SelectorConfig>();
 
@@ -79,15 +79,15 @@ class PolarisSelectTest : public polaris::MockServerConnectorTest {
     strstream << selector_node["polarismesh"];
     std::string orig_selector_config = strstream.str();
 
-    trpc::naming::PolarisNamingConfig naming_config;
+    trpc::naming::PolarisMeshNamingConfig naming_config;
     naming_config.name = "polarismesh";
     naming_config.selector_config = selector_config;
     naming_config.orig_selector_config = orig_selector_config;
     naming_config.Display();
 
-    trpc::RefPtr<trpc::PolarisSelector> p = MakeRefCounted<trpc::PolarisSelector>();
+    trpc::RefPtr<trpc::PolarisMeshSelector> p = MakeRefCounted<trpc::PolarisMeshSelector>();
     trpc::SelectorFactory::GetInstance()->Register(p);
-    selector_ = static_pointer_cast<PolarisSelector>(trpc::SelectorFactory::GetInstance()->Get("polarismesh"));
+    selector_ = static_pointer_cast<PolarisMeshSelector>(trpc::SelectorFactory::GetInstance()->Get("polarismesh"));
     EXPECT_EQ(p.get(), selector_.get());
 
     selector_->SetPluginConfig(naming_config);
@@ -272,7 +272,7 @@ class PolarisSelectTest : public polaris::MockServerConnectorTest {
   }
 
  protected:
-  trpc::PolarisSelectorPtr selector_;
+  trpc::PolarisMeshSelectorPtr selector_;
   v1::DiscoverResponse instances_response_;
   v1::DiscoverResponse routing_response_;
   v1::DiscoverResponse circuit_breaker_pb_response_;
@@ -289,7 +289,7 @@ TEST_F(PolarisSelectTest, SelectNormal) {
 
   auto select_context = trpc::MakeRefCounted<trpc::ClientContext>();
   select_context->SetRequest(request);
-  trpc::RefPtr<trpc::PolarisSelector> p = static_pointer_cast<trpc::PolarisSelector>(selector_);
+  trpc::RefPtr<trpc::PolarisMeshSelector> p = static_pointer_cast<trpc::PolarisMeshSelector>(selector_);
   trpc::naming::polarismesh::SetSelectorExtendInfo(select_context, std::make_pair("namespace", service_key_.namespace_));
   trpc::SelectorInfo selectInfo;
   selectInfo.name = service_key_.name_;
@@ -365,7 +365,7 @@ TEST_F(PolarisSelectTest, SelectAllNormal) {
 
   auto context = trpc::MakeRefCounted<trpc::ClientContext>();
   context->SetRequest(request);
-  trpc::RefPtr<trpc::PolarisSelector> p = static_pointer_cast<trpc::PolarisSelector>(selector_);
+  trpc::RefPtr<trpc::PolarisMeshSelector> p = static_pointer_cast<trpc::PolarisMeshSelector>(selector_);
   trpc::naming::polarismesh::SetSelectorExtendInfo(context, std::make_pair("namespace", service_key_.namespace_));
   trpc::SelectorInfo selectInfo;
   selectInfo.name = service_key_.name_;
@@ -404,7 +404,7 @@ TEST_F(PolarisSelectTest, SelectBatchNormal) {
 
   auto context = trpc::MakeRefCounted<trpc::ClientContext>();
   context->SetRequest(request);
-  trpc::RefPtr<trpc::PolarisSelector> p = static_pointer_cast<trpc::PolarisSelector>(selector_);
+  trpc::RefPtr<trpc::PolarisMeshSelector> p = static_pointer_cast<trpc::PolarisMeshSelector>(selector_);
   trpc::naming::polarismesh::SetSelectorExtendInfo(context, std::make_pair("namespace", service_key_.namespace_));
   trpc::SelectorInfo selectInfo;
   selectInfo.name = service_key_.name_;
@@ -440,7 +440,7 @@ TEST_F(PolarisSelectTest, SelectSet) {
 
   auto context = trpc::MakeRefCounted<trpc::ClientContext>();
   context->SetRequest(request);
-  trpc::RefPtr<trpc::PolarisSelector> p = static_pointer_cast<trpc::PolarisSelector>(selector_);
+  trpc::RefPtr<trpc::PolarisMeshSelector> p = static_pointer_cast<trpc::PolarisMeshSelector>(selector_);
   // Use SET route
   trpc::naming::polarismesh::SetSelectorExtendInfo(context, std::make_pair("namespace", service_key_.namespace_), std::make_pair("callee_set_name", "app.sz.1"), std::make_pair("enable_set_force", "true"));
   trpc::SelectorInfo selectInfo;
@@ -473,7 +473,7 @@ TEST_F(PolarisSelectTest, SelectCanary) {
 
   auto context = trpc::MakeRefCounted<trpc::ClientContext>();
   context->SetRequest(request);
-  trpc::RefPtr<trpc::PolarisSelector> p = static_pointer_cast<trpc::PolarisSelector>(selector_);
+  trpc::RefPtr<trpc::PolarisMeshSelector> p = static_pointer_cast<trpc::PolarisMeshSelector>(selector_);
   trpc::naming::polarismesh::SetSelectorExtendInfo(context, std::make_pair("namespace", service_key_.namespace_));
   trpc::SelectorInfo selectInfo;
   selectInfo.name = service_key_.name_;
@@ -516,7 +516,7 @@ TEST_F(PolarisSelectTest, SelectDstMeta) {
   for (int i = 0; i < 50; i++) {
     auto context = trpc::MakeRefCounted<trpc::ClientContext>();
     context->SetRequest(request);
-    trpc::RefPtr<trpc::PolarisSelector> p = static_pointer_cast<trpc::PolarisSelector>(selector_);
+    trpc::RefPtr<trpc::PolarisMeshSelector> p = static_pointer_cast<trpc::PolarisMeshSelector>(selector_);
     trpc::naming::polarismesh::SetSelectorExtendInfo(context, std::make_pair("namespace", service_key_.namespace_));
     std::map<std::string, std::string> meta;
     meta["label"] = "test";
@@ -542,7 +542,7 @@ TEST_F(PolarisSelectTest, ReportInvokeResult) {
 
   auto context = trpc::MakeRefCounted<trpc::ClientContext>();
   context->SetRequest(request);
-  trpc::RefPtr<trpc::PolarisSelector> p = static_pointer_cast<trpc::PolarisSelector>(selector_);
+  trpc::RefPtr<trpc::PolarisMeshSelector> p = static_pointer_cast<trpc::PolarisMeshSelector>(selector_);
   // Report using Instanceid, no need to construct cache data at this time
   // context->SetInstanceId("instance_1");
   // Reporting with LocalityawareInfo

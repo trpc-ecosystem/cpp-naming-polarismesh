@@ -24,7 +24,7 @@ namespace trpc::naming {
 
 // Client cmdb location information
 struct LocationConfig {
-  std::string region;        // regionPolarisNamingConfig
+  std::string region;        // regionPolarisMeshNamingConfig
   std::string zone;          // zone
   std::string campus;        // campus
   bool enable_update{true};  // Whether to update location information from the CMDB
@@ -285,9 +285,9 @@ struct RateLimiterConfig {
   void Display() const;
 };
 
-struct PolarisNamingConfig {
-  PolarisNamingConfig() {}
-  explicit PolarisNamingConfig(const std::string& name) { this->name = name; }
+struct PolarisMeshNamingConfig {
+  PolarisMeshNamingConfig() {}
+  explicit PolarisMeshNamingConfig(const std::string& name) { this->name = name; }
   std::string name;
   RegistryConfig registry_config;
   SelectorConfig selector_config;
@@ -801,8 +801,8 @@ struct convert<trpc::naming::RateLimiterConfig> {
 };
 
 template <>
-struct convert<trpc::naming::PolarisNamingConfig> {
-  static YAML::Node encode(const trpc::naming::PolarisNamingConfig& config) {
+struct convert<trpc::naming::PolarisMeshNamingConfig> {
+  static YAML::Node encode(const trpc::naming::PolarisMeshNamingConfig& config) {
     YAML::Node node;
 
     node["registry"][config.name] = config.registry_config;
@@ -814,7 +814,7 @@ struct convert<trpc::naming::PolarisNamingConfig> {
     return node;
   }
 
-  static bool decode(const YAML::Node& node, trpc::naming::PolarisNamingConfig& config) {
+  static bool decode(const YAML::Node& node, trpc::naming::PolarisMeshNamingConfig& config) {
     if (node["registry"] && node["registry"][config.name]) {
       config.registry_config = node["registry"][config.name].as<trpc::naming::RegistryConfig>();
     }

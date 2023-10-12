@@ -11,7 +11,7 @@
 //
 //
 
-#include "trpc/naming/polarismesh/polaris_selector.h"
+#include "trpc/naming/polarismesh/polarismesh_selector.h"
 
 #include <map>
 #include <memory>
@@ -26,7 +26,7 @@
 
 #include "trpc/codec/trpc/trpc.pb.h"
 #include "trpc/naming/polarismesh/common.h"
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 #include "trpc/naming/polarismesh/trpc_share_context.h"
 #include "trpc/naming/selector_factory.h"
 #include "trpc/util/log/logging.h"
@@ -37,17 +37,17 @@ namespace trpc {
 
 namespace naming::polarismesh {
 
-uint32_t g_polaris_selector_plugin_id;
+uint32_t g_polarismesh_selector_plugin_id;
 
-uint32_t GetPolarisSelectorPluginID() {
-  return g_polaris_selector_plugin_id;
+uint32_t GetPolarisMeshSelectorPluginID() {
+  return g_polarismesh_selector_plugin_id;
 }
 
 }  // namespace naming::polarismesh
 
 
 // Set the transparent information of the Selector-META-prefix to the polaris Routing rule
-void SetTransSelectorMeta(const ClientContextPtr& context, std::unordered_map<std::string, std::string>* metadata) {
+void SetTransSelectorMeta(const ClientContextPtr& context, std::map<std::string, std::string>* metadata) {
   static constexpr char meta_prefix[] = "selector-meta-";
   const auto& trans_info = context->GetPbReqTransInfo();
   for (auto& item : trans_info) {
@@ -59,33 +59,33 @@ void SetTransSelectorMeta(const ClientContextPtr& context, std::unordered_map<st
   }
 }
 
-int PolarisSelector::Init() noexcept {
+int PolarisMeshSelector::Init() noexcept {
   if (init_) {
     TRPC_FMT_DEBUG("Already init");
     return 0;
   }
 
-  naming::polarismesh::g_polaris_selector_plugin_id = naming::polarismesh::GetPolarisSelectorPluginID();
+  naming::polarismesh::g_polarismesh_selector_plugin_id = naming::polarismesh::GetPolarisMeshSelectorPluginID();
 
   if (plugin_config_.name.empty()) {
-    trpc::naming::PolarisNamingConfig config;
-    SetPolarisSelectorConf(config);
+    trpc::naming::PolarisMeshNamingConfig config;
+    SetPolarisMeshSelectorConf(config);
     plugin_config_ = config;
   }
 
   enable_set_circuitbreaker_ =
       plugin_config_.selector_config.consumer_config.circuit_breaker_config.set_circuitbreaker_config.enable;
   timeout_ = plugin_config_.selector_config.global_config.server_connector_config.timeout;
-  enable_polaris_trans_meta_ = plugin_config_.selector_config.consumer_config.enable_trans_meta;
+  enable_polarismesh_trans_meta_ = plugin_config_.selector_config.consumer_config.enable_trans_meta;
 
   if (trpc::TrpcShareContext::GetInstance()->Init(plugin_config_) != 0) {
     return -1;
   }
-  polaris_context_ = trpc::TrpcShareContext::GetInstance()->GetPolarisContext();
-  consumer_api_ = std::unique_ptr<polaris::ConsumerApi>(polaris::ConsumerApi::Create(polaris_context_.get()));
+  polarismesh_context_ = trpc::TrpcShareContext::GetInstance()->GetPolarisContext();
+  consumer_api_ = std::unique_ptr<polaris::ConsumerApi>(polaris::ConsumerApi::Create(polarismesh_context_.get()));
 //  polaris::GetLogger()->SetLogLevel(polaris::kDebugLogLevel);
-//  auto polaris_context_ = polaris::ConsumerApi::CreateWithDefaultFile();
-  //consumer_api_ = std::unique_ptr<polaris::ConsumerApi>(polaris_context_);
+//  auto polarismesh_context_ = polaris::ConsumerApi::CreateWithDefaultFile();
+  //consumer_api_ = std::unique_ptr<polaris::ConsumerApi>(polarismesh_context_);
   if (!consumer_api_) {
     TRPC_FMT_ERROR("Create ConsumerApi failed");
     return -1;
@@ -101,21 +101,21 @@ int PolarisSelector::Init() noexcept {
   return 0;
 }
 
-void PolarisSelector::Destroy() noexcept {
+void PolarisMeshSelector::Destroy() noexcept {
   if (!init_) {
     TRPC_FMT_DEBUG("No init yet");
     return;
   }
 
   consumer_api_ = nullptr;
-  polaris_context_ = nullptr;
+  polarismesh_context_ = nullptr;
   trpc::TrpcShareContext::GetInstance()->Destroy();
   init_ = false;
 }
 
 // Obtain the specific implementation of the service node
 // from the SDK API interface to select a single node or backup node
-int PolarisSelector::SelectImpl(const SelectorInfo* info, polaris::InstancesResponse*& polaris_response_info) {
+int PolarisMeshSelector::SelectImpl(const SelectorInfo* info, polaris::InstancesResponse*& polarismesh_response_info) {
   // The main system of service key
   polaris::ServiceInfo source_service_info;
   GetSourceServiceKey(info->context, info->extend_select_info, source_service_info.service_key_);
@@ -161,7 +161,7 @@ int PolarisSelector::SelectImpl(const SelectorInfo* info, polaris::InstancesResp
   auto* meta = naming::polarismesh::GetFilterMetadataOfNaming(info->context,
                                                               PolarisMetadataType::kPolarisDstMetaRouteLable);
   if (meta) {
-    request.SetMetadata(*const_cast<std::unordered_map<std::string, std::string>*>(meta));
+    request.SetMetadata(*const_cast<std::map<std::string, std::string>*>(meta));
   }
 
   // If it is a backup strategy, you need to set the number of Backup nodes
@@ -171,7 +171,7 @@ int PolarisSelector::SelectImpl(const SelectorInfo* info, polaris::InstancesResp
   }
 
   // When selecting a routing, do not consider whether to include a health or melting node
-  polaris::ReturnCode ret = consumer_api_->GetOneInstance(request, polaris_response_info);
+  polaris::ReturnCode ret = consumer_api_->GetOneInstance(request, polarismesh_response_info);
   if (ret != polaris::ReturnCode::kReturnOk) {
     TRPC_FMT_ERROR("GetOneInstance failed, sdk returnCode:{}, service_name:{}, service_namespace:{}",
                    static_cast<int32_t>(ret), service_key.name_, service_key.namespace_);
@@ -181,25 +181,25 @@ int PolarisSelector::SelectImpl(const SelectorInfo* info, polaris::InstancesResp
 }
 
 // Get the routing interface of a node that is transferred to a node
-int PolarisSelector::Select(const SelectorInfo* info, TrpcEndpointInfo* endpoint) {
+int PolarisMeshSelector::Select(const SelectorInfo* info, TrpcEndpointInfo* endpoint) {
   if (!init_) {
     TRPC_FMT_ERROR("No inited yet");
     return -1;
   }
 
-  polaris::InstancesResponse* polaris_response_info;
-  int ret = SelectImpl(info, polaris_response_info);
+  polaris::InstancesResponse* polarismesh_response_info;
+  int ret = SelectImpl(info, polarismesh_response_info);
   if (ret != 0) {
     return -1;
   }
 
-  std::vector<polaris::Instance>& instances = polaris_response_info->GetInstances();
+  std::vector<polaris::Instance>& instances = polarismesh_response_info->GetInstances();
 
   TRPC_ASSERT(instances.size() == 1 && "select result should return only one instance");
   if (info->is_from_workflow) {
     // From the workflow of the framework, the entire MetAdata of Instance
     ConvertPolarisInstance(instances[0], *endpoint, false);
-    // SetInstanceId(polaris_response_info.GetId());
+    // SetInstanceId(polarismesh_response_info.GetId());
   } else {
     ConvertPolarisInstance(instances[0], *endpoint, true);
   }
@@ -210,7 +210,7 @@ int PolarisSelector::Select(const SelectorInfo* info, TrpcEndpointInfo* endpoint
 }
 
 // Asynchronous acquisition of a adjustable node interface
-Future<TrpcEndpointInfo> PolarisSelector::AsyncSelect(const SelectorInfo* info) {
+Future<TrpcEndpointInfo> PolarisMeshSelector::AsyncSelect(const SelectorInfo* info) {
   TrpcEndpointInfo endpoint;
   // Only blocked when the first call is called
   int ret = Select(info, &endpoint);
@@ -223,7 +223,7 @@ Future<TrpcEndpointInfo> PolarisSelector::AsyncSelect(const SelectorInfo* info) 
 
 // Obtain the interface of node routing information according to strategy: Support press SET, press IDC, press ALL, and
 // at the backup condition.
-int PolarisSelector::SelectBatch(const SelectorInfo* info, std::vector<TrpcEndpointInfo>* endpoints) {
+int PolarisMeshSelector::SelectBatch(const SelectorInfo* info, std::vector<TrpcEndpointInfo>* endpoints) {
   if (!init_) {
     TRPC_FMT_ERROR("No init yet");
     return -1;
@@ -232,14 +232,14 @@ int PolarisSelector::SelectBatch(const SelectorInfo* info, std::vector<TrpcEndpo
   polaris::InstancesResponse* discovery_rsp = nullptr;
 
   if (info->policy == SelectorPolicy::MULTIPLE) {
-    polaris::InstancesResponse* polaris_response_info;
+    polaris::InstancesResponse* polarismesh_response_info;
     // Backup strategy (compatible with old version logic)
-    int ret = SelectImpl(info, polaris_response_info);
+    int ret = SelectImpl(info, polarismesh_response_info);
     if (ret != 0) {
       return -1;
     }
 
-    std::vector<polaris::Instance> instances = polaris_response_info->GetInstances();
+    std::vector<polaris::Instance> instances = polarismesh_response_info->GetInstances();
     ConvertPolarisInstances(instances, *endpoints);
 
     return 0;
@@ -291,7 +291,7 @@ int PolarisSelector::SelectBatch(const SelectorInfo* info, std::vector<TrpcEndpo
     auto* meta = naming::polarismesh::GetFilterMetadataOfNaming(info->context,
                                                                 PolarisMetadataType::kPolarisDstMetaRouteLable);
     if (meta) {
-      discovery_req.SetMetadata(*const_cast<std::unordered_map<std::string, std::string>*>(meta));
+      discovery_req.SetMetadata(*const_cast<std::map<std::string, std::string>*>(meta));
     }
 
     polaris::ReturnCode ret = consumer_api_->GetInstances(discovery_req, discovery_rsp);
@@ -320,7 +320,7 @@ int PolarisSelector::SelectBatch(const SelectorInfo* info, std::vector<TrpcEndpo
   return 0;
 }
 
-Future<std::vector<TrpcEndpointInfo>> PolarisSelector::AsyncSelectBatch(const SelectorInfo* info) {
+Future<std::vector<TrpcEndpointInfo>> PolarisMeshSelector::AsyncSelectBatch(const SelectorInfo* info) {
   std::vector<TrpcEndpointInfo> endpoints;
   // Only blocked when the first call is called
   int ret = SelectBatch(info, &endpoints);
@@ -332,7 +332,7 @@ Future<std::vector<TrpcEndpointInfo>> PolarisSelector::AsyncSelectBatch(const Se
 }
 
 // Report interface on the result
-int PolarisSelector::ReportInvokeResult(const InvokeResult* result) {
+int PolarisMeshSelector::ReportInvokeResult(const InvokeResult* result) {
   if (!init_ || result == nullptr) {
     TRPC_FMT_ERROR("Invalid parameter: invoke result is invalid");
     return -1;
@@ -375,7 +375,7 @@ int PolarisSelector::ReportInvokeResult(const InvokeResult* result) {
   return 0;
 }
 
-bool PolarisSelector::SetCircuitBreakWhiteList(const std::vector<int>& framework_retcodes) {
+bool PolarisMeshSelector::SetCircuitBreakWhiteList(const std::vector<int>& framework_retcodes) {
   auto& writer = circuitbreak_whitelist_.Writer();
   writer.clear();
   writer.insert(framework_retcodes.begin(), framework_retcodes.end());
@@ -383,7 +383,7 @@ bool PolarisSelector::SetCircuitBreakWhiteList(const std::vector<int>& framework
   return true;
 }
 
-void PolarisSelector::FillMetadataOfSourceServiceInfo(const SelectorInfo* info,
+void PolarisMeshSelector::FillMetadataOfSourceServiceInfo(const SelectorInfo* info,
                                                       polaris::ServiceInfo& source_service_info) {
   const auto& context = info->context;
   auto& metadata = source_service_info.metadata_;
@@ -400,7 +400,7 @@ void PolarisSelector::FillMetadataOfSourceServiceInfo(const SelectorInfo* info,
   // To solve the problem that the requesting field cannot be passed to the polarismesh for Meta matching.It agrees that
   // the transparent field of the prefix of the "Selector-Meta-'prefix, remove the prefix and fill in Meta, and match
   // the polarismesh
-  if (enable_polaris_trans_meta_) {
+  if (enable_polarismesh_trans_meta_) {
     SetTransSelectorMeta(context, &metadata);
     TRPC_FMT_DEBUG("Enable trans selector meta, service_name:{}", info->name);
   }
@@ -418,20 +418,20 @@ void PolarisSelector::FillMetadataOfSourceServiceInfo(const SelectorInfo* info,
   }
 }
 
-void PolarisSelector::GetSourceServiceKey(const ClientContextPtr& client_context_ptr, 
+void PolarisMeshSelector::GetSourceServiceKey(const ClientContextPtr& client_context_ptr,
                                           const std::any* extend_select_info, polaris::ServiceKey& service_key) {
   service_key.name_ = client_context_ptr->GetCallerName();
   auto& global_namespace = TrpcConfig::GetInstance()->GetGlobalConfig().env_namespace;
   if (!global_namespace.empty()) {
     service_key.namespace_ = global_namespace;
   } else {
-    service_key.namespace_ = GetValueFromContextOrExtend(client_context_ptr, extend_select_info, "namespace");
+    service_key.namespace_ = GetNamespaceFromContextOrExtend(client_context_ptr, extend_select_info);
   }
 
   return ;
 }
 
-std::string PolarisSelector::ParseExtendSelectInfo(const std::any* extend_select_info, const std::string& field_name) {
+std::string PolarisMeshSelector::ParseExtendSelectInfo(const std::any* extend_select_info, const std::string& field_name) {
   if (extend_select_info == nullptr) {
     return "";
   }
@@ -455,23 +455,35 @@ std::string PolarisSelector::ParseExtendSelectInfo(const std::any* extend_select
   return "";
 }
 
-std::string PolarisSelector::GetValueFromContextOrExtend(const ClientContextPtr& context,
+std::string PolarisMeshSelector::GetValueFromContextOrExtend(const ClientContextPtr& context,
                                                           const std::any* extend_select_info, const std::string& field_name) {
-   std::string value = naming::polarismesh::GetSelectorExtendInfo(context, field_name);
-   if (value.empty()) {
-     value = ParseExtendSelectInfo(extend_select_info, field_name);
-   }
-   return value;
- }
+  std::string value = naming::polarismesh::GetSelectorExtendInfo(context, field_name);
+  if (value.empty()) {
+    value = ParseExtendSelectInfo(extend_select_info, field_name);
+  }
+  return value;
+}
 
-std::string PolarisSelector::GetNamespaceFromContextOrExtend(const ClientContextPtr& context,
-                                                          const std::any* extend_select_info) {
-   std::string value = naming::polarismesh::GetSelectorExtendInfo(context, "namespace");
-   if (value.empty()) {
-     value = ParseExtendSelectInfo(extend_select_info, "namespace");
-     naming::polarismesh::SetSelectorExtendInfo(context, std::make_pair("namespace", value));
-   }
-   return value;
- }
+std::string PolarisMeshSelector::GetNamespaceFromContextOrExtend(const ClientContextPtr& context,
+                                                                 const std::any* extend_select_info) {
+  std::string value = naming::polarismesh::GetSelectorExtendInfo(context, "namespace");
+
+  if (value.empty()) {
+    value = ParseExtendSelectInfo(extend_select_info, "namespace");
+    if (value.empty()) {
+      // If the value is still empty, try to get the namespace from ServiceProxyOption
+      const ServiceProxyOption* service_proxy_option = context->GetServiceProxyOption();
+      if (service_proxy_option != nullptr) {
+        value = service_proxy_option->name_space;
+      }
+    }
+    // If the namespace is obtained from ParseExtendSelectInfo or ServiceProxyOption, set it in the context
+    if (!value.empty()) {
+      naming::polarismesh::SetSelectorExtendInfo(context, std::make_pair("namespace", value));
+    }
+  }
+
+  return value;
+}
 
 }  // namespace trpc

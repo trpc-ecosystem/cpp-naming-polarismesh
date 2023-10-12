@@ -21,12 +21,12 @@
 
 #include "trpc/naming/limiter.h"
 #include "trpc/naming/polarismesh/common.h"
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 
 namespace trpc {
 
-/// @brief polarismesh Limewattage plugin
-class PolarisLimiter : public Limiter {
+/// @brief polarismesh rate limiting plugin
+class PolarisMeshLimiter : public Limiter {
  public:
   /// @brief The name of the plugin
   std::string Name() const override { return kPolarisPluginName; }
@@ -55,16 +55,16 @@ class PolarisLimiter : public Limiter {
   int FinishLimit(const LimitResult* result) override;
 
   /// @brief Setter function for plugin_config_
-  void SetPluginConfig(const naming::PolarisNamingConfig& config) {
+  void SetPluginConfig(const naming::PolarisMeshNamingConfig& config) {
     plugin_config_ = config;
   }
 
  private:
   bool init_{false};
-  naming::PolarisNamingConfig plugin_config_;
+  naming::PolarisMeshNamingConfig plugin_config_;
   std::unique_ptr<polaris::LimitApi> limit_api_{nullptr};
 };
 
-using PolarisLimiterPtr = RefPtr<PolarisLimiter>;
+using PolarisMeshLimiterPtr = RefPtr<PolarisMeshLimiter>;
 
 }  // namespace trpc

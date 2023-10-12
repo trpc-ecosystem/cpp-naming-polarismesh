@@ -26,9 +26,9 @@ cc_test(
 )
 
 cc_library(
-    name = "polaris_naming_conf",
-    srcs = ["polaris_naming_conf.cc"],
-    hdrs = ["polaris_naming_conf.h"],
+    name = "polarismesh_naming_conf",
+    srcs = ["polarismesh_naming_conf.cc"],
+    hdrs = ["polarismesh_naming_conf.h"],
     deps = [
         ":default_naming_conf",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp",
@@ -38,17 +38,17 @@ cc_library(
 )
 
 cc_test(
-    name = "polaris_naming_conf_test",
-    srcs = ["polaris_naming_conf_test.cc"],
+    name = "polarismesh_naming_conf_test",
+    srcs = ["polarismesh_naming_conf_test.cc"],
     copts = [
         "-g",
     ],
     linkstatic = True,
     deps = [
-        ":polaris_naming_conf",
-        "//trpc/naming/polarismesh:mock_polaris_api_test",
+        ":polarismesh_naming_conf",
+        "//trpc/naming/polarismesh:mock_polarismesh_api_test",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp",
-        "@com_github_polarismesh_polaris//:polaris_api_trpc",
+        "@com_github_polarismesh_polaris//:polarismesh_api_trpc",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
     ],

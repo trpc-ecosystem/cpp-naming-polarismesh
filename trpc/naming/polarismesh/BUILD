@@ -13,8 +13,8 @@ cc_library(
     ],
     deps = [
         ":readers_writer_data",
-        "//trpc/naming/polarismesh/config:polaris_naming_conf",
-        "@com_github_polarismesh_polaris//:polaris_api_trpc",
+        "//trpc/naming/polarismesh/config:polarismesh_naming_conf",
+        "@com_github_polarismesh_polaris//:polarismesh_api_trpc",
         "@trpc_cpp//trpc/codec/trpc",
         "@trpc_cpp//trpc/common/config:trpc_config",
         "@trpc_cpp//trpc/common/future",
@@ -27,25 +27,25 @@ cc_test(
     name = "common_test",
     srcs = ["common_test.cc"],
     data = [
-        "//trpc/naming/polarismesh/testing:polaris_test.yaml",
+        "//trpc/naming/polarismesh/testing:polarismesh_test.yaml",
     ],
     linkstatic = True,
     deps = [
         ":common",
-        "@com_github_polarismesh_polaris//:polaris_api_trpc",
+        "@com_github_polarismesh_polaris//:polarismesh_api_trpc",
         "@com_google_googletest//:gtest",
         "@trpc_cpp//trpc/naming/common:common_defs",
     ],
 )
 
 cc_library(
-    name = "mock_polaris_api_test",
+    name = "mock_polarismesh_api_test",
     srcs = [],
-    hdrs = ["mock_polaris_api_test.h"],
+    hdrs = ["mock_polarismesh_api_test.h"],
     deps = [
-        "//trpc/naming/polarismesh/config:polaris_naming_conf",
+        "//trpc/naming/polarismesh/config:polarismesh_naming_conf",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp",
-        "@com_github_polarismesh_polaris//:polaris_api_trpc",
+        "@com_github_polarismesh_polaris//:polarismesh_api_trpc",
     ],
 )
 
@@ -58,8 +58,8 @@ cc_library(
     ],
     deps = [
         "//trpc/naming/polarismesh:trpc_server_metric",
-        "//trpc/naming/polarismesh/config:polaris_naming_conf",
-        "@com_github_polarismesh_polaris//:polaris_api_trpc",
+        "//trpc/naming/polarismesh/config:polarismesh_naming_conf",
+        "@com_github_polarismesh_polaris//:polarismesh_api_trpc",
         "@trpc_cpp//trpc/util/log:logging",
     ],
 )
@@ -69,25 +69,25 @@ cc_test(
     srcs = ["trpc_share_context_test.cc"],
     deps = [
         "//trpc/naming/polarismesh:trpc_share_context",
-        "//trpc/naming/polarismesh/config:polaris_naming_conf",
+        "//trpc/naming/polarismesh/config:polarismesh_naming_conf",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_library(
-    name = "polaris_selector",
-    srcs = ["polaris_selector.cc"],
-    hdrs = ["polaris_selector.h"],
+    name = "polarismesh_selector",
+    srcs = ["polarismesh_selector.cc"],
+    hdrs = ["polarismesh_selector.h"],
     visibility = [
         "//visibility:public",
     ],
     deps = [
         "//trpc/naming/polarismesh:common",
         "//trpc/naming/polarismesh:trpc_share_context",
-        "//trpc/naming/polarismesh/config:polaris_naming_conf",
+        "//trpc/naming/polarismesh/config:polarismesh_naming_conf",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp",
-        "@com_github_polarismesh_polaris//:polaris_api_trpc",
+        "@com_github_polarismesh_polaris//:polarismesh_api_trpc",
         "@com_github_tencent_rapidjson//:rapidjson",
         "@trpc_cpp//trpc/codec/trpc",
         "@trpc_cpp//trpc/naming:selector",
@@ -99,10 +99,10 @@ cc_library(
 )
 
 cc_test(
-    name = "polaris_selector_test",
-    srcs = ["polaris_selector_test.cc"],
+    name = "polarismesh_selector_test",
+    srcs = ["polarismesh_selector_test.cc"],
     data = [
-        "//trpc/naming/polarismesh/testing:polaris_test.yaml",
+        "//trpc/naming/polarismesh/testing:polarismesh_test.yaml",
     ],
     defines = [] +
               select({
@@ -110,10 +110,10 @@ cc_test(
               }),
     linkstatic = True,
     deps = [
-        "//trpc/naming/polarismesh:mock_polaris_api_test",
-        "//trpc/naming/polarismesh:polaris_selector",
+        "//trpc/naming/polarismesh:mock_polarismesh_api_test",
+        "//trpc/naming/polarismesh:polarismesh_selector",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp",
-        "@com_github_polarismesh_polaris//:polaris_api_trpc",
+        "@com_github_polarismesh_polaris//:polarismesh_api_trpc",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
         "@trpc_cpp//trpc/naming:registry_factory",
@@ -123,9 +123,9 @@ cc_test(
 )
 
 cc_library(
-    name = "polaris_registry",
-    srcs = ["polaris_registry.cc"],
-    hdrs = ["polaris_registry.h"],
+    name = "polarismesh_registry",
+    srcs = ["polarismesh_registry.cc"],
+    hdrs = ["polarismesh_registry.h"],
     visibility = [
         "//visibility:public",
     ],
@@ -133,7 +133,7 @@ cc_library(
         "//trpc/naming/polarismesh:common",
         "//trpc/naming/polarismesh:trpc_share_context",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp",
-        "@com_github_polarismesh_polaris//:polaris_api_trpc",
+        "@com_github_polarismesh_polaris//:polarismesh_api_trpc",
         "@trpc_cpp//trpc/common/config:trpc_config",
         "@trpc_cpp//trpc/filter:filter_manager",
         "@trpc_cpp//trpc/naming:registry",
@@ -143,12 +143,12 @@ cc_library(
 )
 
 cc_test(
-    name = "polaris_registry_test",
-    srcs = ["polaris_registry_test.cc"],
+    name = "polarismesh_registry_test",
+    srcs = ["polarismesh_registry_test.cc"],
     linkstatic = True,
     deps = [
-        "//trpc/naming/polarismesh:mock_polaris_api_test",
-        "//trpc/naming/polarismesh:polaris_registry",
+        "//trpc/naming/polarismesh:mock_polarismesh_api_test",
+        "//trpc/naming/polarismesh:polarismesh_registry",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp",
         "@com_google_googletest//:gtest",
         "@trpc_cpp//trpc/common:trpc_plugin",
@@ -158,9 +158,9 @@ cc_test(
 )
 
 cc_library(
-    name = "polaris_selector_filter",
+    name = "polarismesh_selector_filter",
     srcs = [],
-    hdrs = ["polaris_selector_filter.h"],
+    hdrs = ["polarismesh_selector_filter.h"],
     visibility = [
         "//visibility:public",
     ],
@@ -172,12 +172,12 @@ cc_library(
 )
 
 cc_test(
-    name = "polaris_selector_filter_test",
-    srcs = ["polaris_selector_filter_test.cc"],
+    name = "polarismesh_selector_filter_test",
+    srcs = ["polarismesh_selector_filter_test.cc"],
     deps = [
-        ":polaris_selector_filter",
-        "//trpc/naming/polarismesh:mock_polaris_api_test",
-        "//trpc/naming/polarismesh:polaris_selector",
+        ":polarismesh_selector_filter",
+        "//trpc/naming/polarismesh:mock_polarismesh_api_test",
+        "//trpc/naming/polarismesh:polarismesh_selector",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
@@ -190,28 +190,28 @@ cc_test(
 )
 
 cc_library(
-    name = "polaris_limiter",
-    srcs = ["polaris_limiter.cc"],
-    hdrs = ["polaris_limiter.h"],
+    name = "polarismesh_limiter",
+    srcs = ["polarismesh_limiter.cc"],
+    hdrs = ["polarismesh_limiter.h"],
     deps = [
         "//trpc/naming/polarismesh:common",
         "//trpc/naming/polarismesh:trpc_share_context",
-        "//trpc/naming/polarismesh/config:polaris_naming_conf",
-        "@com_github_polarismesh_polaris//:polaris_api_trpc",
+        "//trpc/naming/polarismesh/config:polarismesh_naming_conf",
+        "@com_github_polarismesh_polaris//:polarismesh_api_trpc",
         "@trpc_cpp//trpc/codec/trpc",
         "@trpc_cpp//trpc/naming:limiter",
     ],
 )
 
 cc_library(
-    name = "polaris_limiter_client_filter",
-    srcs = ["polaris_limiter_client_filter.cc"],
-    hdrs = ["polaris_limiter_client_filter.h"],
+    name = "polarismesh_limiter_client_filter",
+    srcs = ["polarismesh_limiter_client_filter.cc"],
+    hdrs = ["polarismesh_limiter_client_filter.h"],
     visibility = [
         "//visibility:public",
     ],
     deps = [
-        "//trpc/naming/polarismesh/config:polaris_naming_conf",
+        "//trpc/naming/polarismesh/config:polarismesh_naming_conf",
         "@trpc_cpp//trpc/client:client_context",
         "@trpc_cpp//trpc/common:status",
         "@trpc_cpp//trpc/common/config:trpc_config",
@@ -223,14 +223,14 @@ cc_library(
 )
 
 cc_library(
-    name = "polaris_limiter_server_filter",
-    srcs = ["polaris_limiter_server_filter.cc"],
-    hdrs = ["polaris_limiter_server_filter.h"],
+    name = "polarismesh_limiter_server_filter",
+    srcs = ["polarismesh_limiter_server_filter.cc"],
+    hdrs = ["polarismesh_limiter_server_filter.h"],
     visibility = [
         "//visibility:public",
     ],
     deps = [
-        "//trpc/naming/polarismesh/config:polaris_naming_conf",
+        "//trpc/naming/polarismesh/config:polarismesh_naming_conf",
         "@trpc_cpp//trpc/common:status",
         "@trpc_cpp//trpc/common/config:trpc_config",
         "@trpc_cpp//trpc/filter",
@@ -242,14 +242,14 @@ cc_library(
 )
 
 cc_test(
-    name = "polaris_limiter_test",
-    srcs = ["polaris_limiter_test.cc"],
+    name = "polarismesh_limiter_test",
+    srcs = ["polarismesh_limiter_test.cc"],
     data = [
     ],
     linkstatic = True,
     deps = [
-        "//trpc/naming/polarismesh:mock_polaris_api_test",
-        "//trpc/naming/polarismesh:polaris_limiter",
+        "//trpc/naming/polarismesh:mock_polarismesh_api_test",
+        "//trpc/naming/polarismesh:polarismesh_limiter",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
@@ -260,13 +260,13 @@ cc_test(
 )
 
 cc_test(
-    name = "polaris_limiter_client_filter_test",
-    srcs = ["polaris_limiter_client_filter_test.cc"],
-    data = ["//trpc/naming/polarismesh/testing:polaris_test.yaml"],
+    name = "polarismesh_limiter_client_filter_test",
+    srcs = ["polarismesh_limiter_client_filter_test.cc"],
+    data = ["//trpc/naming/polarismesh/testing:polarismesh_test.yaml"],
     deps = [
-        ":polaris_limiter",
-        "//trpc/naming/polarismesh:mock_polaris_api_test",
-        "//trpc/naming/polarismesh:polaris_limiter_client_filter",
+        ":polarismesh_limiter",
+        "//trpc/naming/polarismesh:mock_polarismesh_api_test",
+        "//trpc/naming/polarismesh:polarismesh_limiter_client_filter",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
@@ -277,13 +277,13 @@ cc_test(
 )
 
 cc_test(
-    name = "polaris_limiter_server_filter_test",
-    srcs = ["polaris_limiter_server_filter_test.cc"],
-    data = ["//trpc/naming/polarismesh/testing:polaris_test.yaml"],
+    name = "polarismesh_limiter_server_filter_test",
+    srcs = ["polarismesh_limiter_server_filter_test.cc"],
+    data = ["//trpc/naming/polarismesh/testing:polarismesh_test.yaml"],
     deps = [
-        ":polaris_limiter",
-        "//trpc/naming/polarismesh:mock_polaris_api_test",
-        "//trpc/naming/polarismesh:polaris_limiter_server_filter",
+        ":polarismesh_limiter",
+        "//trpc/naming/polarismesh:mock_polarismesh_api_test",
+        "//trpc/naming/polarismesh:polarismesh_limiter_server_filter",
         "@com_github_jbeder_yaml_cpp//:yaml-cpp",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
@@ -305,7 +305,7 @@ cc_library(
     deps = [
         "@trpc_cpp//trpc/codec/trpc",
         "@trpc_cpp//trpc/common/config:trpc_config",
-        "@com_github_polarismesh_polaris//:polaris_api_trpc",
+        "@com_github_polarismesh_polaris//:polarismesh_api_trpc",
         "@trpc_cpp//trpc/metrics:metrics_factory",
         "@trpc_cpp//trpc/metrics:trpc_metrics",
         "@trpc_cpp//trpc/util/log:logging",
@@ -315,7 +315,7 @@ cc_library(
 cc_test(
     name = "trpc_server_metric_test",
     srcs = ["trpc_server_metric_test.cc"],
-    data = ["//trpc/naming/polarismesh/testing:polaris_test.yaml"],
+    data = ["//trpc/naming/polarismesh/testing:polarismesh_test.yaml"],
     deps = [
         "//trpc/naming/polarismesh:trpc_server_metric",
         "@com_google_googletest//:gtest",
@@ -332,35 +332,35 @@ cc_library(
 )
 
 cc_library(
-    name = "polaris_selector_api",
-    srcs = ["polaris_selector_api.cc"],
-    hdrs = ["polaris_selector_api.h"],
+    name = "polarismesh_selector_api",
+    srcs = ["polarismesh_selector_api.cc"],
+    hdrs = ["polarismesh_selector_api.h"],
     deps = [
-        "//trpc/naming/polarismesh:polaris_selector",
-        "//trpc/naming/polarismesh:polaris_selector_filter",
+        "//trpc/naming/polarismesh:polarismesh_selector",
+        "//trpc/naming/polarismesh:polarismesh_selector_filter",
         "@trpc_cpp//trpc/common:trpc_plugin",
         "@trpc_cpp//trpc/naming:selector_factory",
     ],
 )
 
 cc_library(
-    name = "polaris_limiter_api",
-    srcs = ["polaris_limiter_api.cc"],
-    hdrs = ["polaris_limiter_api.h"],
+    name = "polarismesh_limiter_api",
+    srcs = ["polarismesh_limiter_api.cc"],
+    hdrs = ["polarismesh_limiter_api.h"],
     deps = [
-        "//trpc/naming/polarismesh:polaris_limiter",
-        "//trpc/naming/polarismesh:polaris_limiter_client_filter",
-        "//trpc/naming/polarismesh:polaris_limiter_server_filter",
+        "//trpc/naming/polarismesh:polarismesh_limiter",
+        "//trpc/naming/polarismesh:polarismesh_limiter_client_filter",
+        "//trpc/naming/polarismesh:polarismesh_limiter_server_filter",
         "@trpc_cpp//trpc/common:trpc_plugin",
     ],
 )
 
 cc_library(
-    name = "polaris_registry_api",
-    srcs = ["polaris_registry_api.cc"],
-    hdrs = ["polaris_registry_api.h"],
+    name = "polarismesh_registry_api",
+    srcs = ["polarismesh_registry_api.cc"],
+    hdrs = ["polarismesh_registry_api.h"],
     deps = [
-        "//trpc/naming/polarismesh:polaris_registry",
+        "//trpc/naming/polarismesh:polarismesh_registry",
         "@trpc_cpp//trpc/common:trpc_plugin",
     ],
 )

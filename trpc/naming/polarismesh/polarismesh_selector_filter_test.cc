@@ -11,7 +11,7 @@
 //
 //
 
-#include "trpc/naming/polarismesh/polaris_selector_filter.h"
+#include "trpc/naming/polarismesh/polarismesh_selector_filter.h"
 
 #include <pthread.h>
 #include <stdint.h>
@@ -28,8 +28,8 @@
 #include "trpc/filter/filter.h"
 #include "trpc/filter/filter_manager.h"
 #include "trpc/naming/common/common_defs.h"
-#include "trpc/naming/polarismesh/mock_polaris_api_test.h"
-#include "trpc/naming/polarismesh/polaris_selector.h"
+#include "trpc/naming/polarismesh/mock_polarismesh_api_test.h"
+#include "trpc/naming/polarismesh/polarismesh_selector.h"
 #include "trpc/naming/registry_factory.h"
 #include "trpc/naming/selector.h"
 #include "trpc/naming/selector_factory.h"
@@ -46,12 +46,12 @@ class MockProtocol : public Protocol {
   virtual bool ZeroCopyEncode(NoncontiguousBuffer& buff) { return true; };
 };
 
-class PolarisSelectorFilterTest : public polaris::MockServerConnectorTest {
+class PolarisMeshSelectorFilterTest : public polaris::MockServerConnectorTest {
  protected:
   virtual void SetUp() {
     MockServerConnectorTest::SetUp();
     ASSERT_TRUE(polaris::TestUtils::CreateTempDir(persist_dir_));
-    InitPolarisSelector();
+    InitPolarisMeshSelector();
     InitServiceNormalData();
     selector_filter_ = trpc::FilterManager::GetInstance()->GetMessageClientFilter("polarismesh");
     ASSERT_TRUE(selector_filter_ != nullptr);
@@ -67,9 +67,9 @@ class PolarisSelectorFilterTest : public polaris::MockServerConnectorTest {
     MockServerConnectorTest::TearDown();
   }
 
-  void InitPolarisSelector() {
+  void InitPolarisMeshSelector() {
     PolarisNamingTestConfigSwitch default_Switch;
-    YAML::Node root = YAML::Load(trpc::buildPolarisNamingConfig(default_Switch));
+    YAML::Node root = YAML::Load(trpc::buildPolarisMeshNamingConfig(default_Switch));
     YAML::Node selector_node = root["selector"];
     trpc::naming::SelectorConfig selector_config = selector_node["polarismesh"].as<trpc::naming::SelectorConfig>();
 
@@ -84,15 +84,15 @@ class PolarisSelectorFilterTest : public polaris::MockServerConnectorTest {
     strstream << selector_node["polarismesh"];
     std::string orig_selector_config = strstream.str();
 
-    trpc::naming::PolarisNamingConfig naming_config;
+    trpc::naming::PolarisMeshNamingConfig naming_config;
     naming_config.name = "polarismesh";
     naming_config.selector_config = selector_config;
     naming_config.orig_selector_config = orig_selector_config;
     naming_config.Display();
 
-    trpc::RefPtr<trpc::PolarisSelector> p = MakeRefCounted<trpc::PolarisSelector>();
+    trpc::RefPtr<trpc::PolarisMeshSelector> p = MakeRefCounted<trpc::PolarisMeshSelector>();
     trpc::SelectorFactory::GetInstance()->Register(p);
-    selector_ = static_pointer_cast<PolarisSelector>(trpc::SelectorFactory::GetInstance()->Get("polarismesh"));
+    selector_ = static_pointer_cast<PolarisMeshSelector>(trpc::SelectorFactory::GetInstance()->Get("polarismesh"));
     EXPECT_EQ(p.get(), selector_.get());
 
     selector_->SetPluginConfig(naming_config);
@@ -100,9 +100,9 @@ class PolarisSelectorFilterTest : public polaris::MockServerConnectorTest {
     ASSERT_EQ(0, selector_->Init());
     EXPECT_TRUE("" != p->Version());
 
-    MessageClientFilterPtr polaris_selector_filter(new PolarisSelectorFilter());
-    polaris_selector_filter->Init();
-    FilterManager::GetInstance()->AddMessageClientFilter(polaris_selector_filter);
+    MessageClientFilterPtr polarismesh_selector_filter(new PolarisMeshSelectorFilter());
+    polarismesh_selector_filter->Init();
+    FilterManager::GetInstance()->AddMessageClientFilter(polarismesh_selector_filter);
 
     service_key_.name_ = "test.service";
     service_key_.namespace_ = kPolarisNamespaceTest;
@@ -161,7 +161,7 @@ class PolarisSelectorFilterTest : public polaris::MockServerConnectorTest {
   }
 
  protected:
-  trpc::PolarisSelectorPtr selector_;
+  trpc::PolarisMeshSelectorPtr selector_;
   MessageClientFilterPtr selector_filter_;
   v1::DiscoverResponse instances_response_;
   v1::DiscoverResponse routing_response_;
@@ -171,23 +171,23 @@ class PolarisSelectorFilterTest : public polaris::MockServerConnectorTest {
   std::vector<pthread_t> event_thread_list_;
 };
 
-TEST_F(PolarisSelectorFilterTest, Type) {
+TEST_F(PolarisMeshSelectorFilterTest, Type) {
   auto filter_type = selector_filter_->Type();
   EXPECT_EQ(filter_type, FilterType::kSelector);
 }
 
-TEST_F(PolarisSelectorFilterTest, GetFilterPoint) {
+TEST_F(PolarisMeshSelectorFilterTest, GetFilterPoint) {
   auto filter_points = selector_filter_->GetFilterPoint();
   ASSERT_EQ(filter_points.size(), 2);
   ASSERT_EQ(filter_points[0], FilterPoint::CLIENT_PRE_RPC_INVOKE);
   ASSERT_EQ(filter_points[1], FilterPoint::CLIENT_POST_RPC_INVOKE);
 }
 
-TEST_F(PolarisSelectorFilterTest, operator_select_one) {
+TEST_F(PolarisMeshSelectorFilterTest, operator_select_one) {
   EXPECT_CALL(*polaris::MockServerConnectorTest::server_connector_,
               RegisterEventHandler(::testing::Eq(service_key_), ::testing::_, ::testing::_, ::testing::_, ::testing::_))
       .Times(::testing::Exactly(2))
-      .WillRepeatedly(::testing::DoAll(::testing::Invoke(this, &PolarisSelectorFilterTest::MockFireEventHandler),
+      .WillRepeatedly(::testing::DoAll(::testing::Invoke(this, &PolarisMeshSelectorFilterTest::MockFireEventHandler),
                                        ::testing::Return(polaris::kReturnOk)));
 
   // You must initialize the request before you can be selected
@@ -200,7 +200,6 @@ TEST_F(PolarisSelectorFilterTest, operator_select_one) {
   option.name_space = service_key_.namespace_;
   option.selector_name = "polarismesh";
   context->SetServiceProxyOption(&option);
-
   // select test
   FilterStatus status;
   selector_filter_->operator()(status, FilterPoint::CLIENT_PRE_RPC_INVOKE, context);
@@ -213,11 +212,11 @@ TEST_F(PolarisSelectorFilterTest, operator_select_one) {
   // ASSERT_TRUE(!context->GetInstanceId().empty());
 }
 
-TEST_F(PolarisSelectorFilterTest, operator_select_multi) {
+TEST_F(PolarisMeshSelectorFilterTest, operator_select_multi) {
   EXPECT_CALL(*polaris::MockServerConnectorTest::server_connector_,
               RegisterEventHandler(::testing::Eq(service_key_), ::testing::_, ::testing::_, ::testing::_, ::testing::_))
       .Times(::testing::Exactly(2))
-      .WillRepeatedly(::testing::DoAll(::testing::Invoke(this, &PolarisSelectorFilterTest::MockFireEventHandler),
+      .WillRepeatedly(::testing::DoAll(::testing::Invoke(this, &PolarisMeshSelectorFilterTest::MockFireEventHandler),
                                        ::testing::Return(polaris::kReturnOk)));
   // You must initialize the request before you can be selected
   ProtocolPtr request = std::make_shared<MockProtocol>();
@@ -231,7 +230,7 @@ TEST_F(PolarisSelectorFilterTest, operator_select_multi) {
   context->SetServiceProxyOption(&option);
   context->SetBackupRequestDelay(10);  // Use Backup Request, select two nodes
   ASSERT_EQ(context->GetBackupRequestRetryInfo()->backup_addrs.size(), 0);
-
+  //::trpc::naming::polarismesh::SetSelectorExtendInfo(context, std::make_pair("namespace", "Test"));
   // select test
   FilterStatus status;
   selector_filter_->operator()(status, FilterPoint::CLIENT_PRE_RPC_INVOKE, context);
