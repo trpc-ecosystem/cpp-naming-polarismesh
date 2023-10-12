@@ -1,4 +1,4 @@
-[中文](./README_zh.md)
+[中文](./README.zh_CN.md)
 
 # Overview
 [PolarisMesh](https://polarismesh.cn) is a service governance platform developed by Tencent in collaboration with the open-source community. The tRPC-Cpp Polaris plugin encapsulates the [official Polaris SDK](https://github.com/polarismesh/polaris-cpp).
@@ -180,10 +180,10 @@ In the server configuration, you need to !!#ff0000 **add the configuration regis
 server:
   registry_name: polaris
   service:
-    - name: ${service_name}    #The service name on Polaris, note the difference between this and the four-segment naming
-      ip: ${ip}                #Listening IP
-      nic: ${nic}              #Listening network card name, used to obtain IP through the network card name (priority is given to IP, otherwise use the network card to obtain IP)
-      port:${port}             #Listening port
+    - name: ${service_name}    # The service name on Polaris, note the difference between this and the four-segment naming
+      ip: ${ip}                # Listening IP
+      nic: ${nic}              # Listening network card name, used to obtain IP through the network card name (priority is given to IP, otherwise use the network card to obtain IP)
+      port:${port}             # Listening port
 ```
 In the registry plugin (plugins/registry) configuration, configure the information required for Polaris heartbeat reporting (service namespace, service name, token, instanceid).
 ```registry yaml
@@ -192,10 +192,10 @@ plugins:
   registry:  # Service registration configuration
     polarismesh:  # Polaris service instance registration plugin
       service:
-        - instance_id: ${instance_id}    #The unique ID of the service instance, if not configured, the framework will use the ip:port of the same name service in the server configuration (optional)
-          name: ${service_name}          #The service name on Polaris
-          namespace: ${namespace}        #Namespace
-          token: ${token}                #Service token
+        - instance_id: ${instance_id}    # The unique ID of the service instance, if not configured, the framework will use the ip:port of the same name service in the server configuration (optional)
+          name: ${service_name}          # The service name on Polaris
+          namespace: ${namespace}        # Namespace
+          token: ${token}                # Service token
 ```
 ## How to register a service instance
 
@@ -208,12 +208,12 @@ server配置
 ```server yaml
 # Server configuration
 server:
-  registry_name: polaris       #Specify which name service to register with
-  enable_self_register: true   #Enable the framework's self-registration function
+  registry_name: polaris       # Specify which name service to register with
+  enable_self_register: true   # Enable the framework's self-registration function
   service:
-    - name: ${service_name}    #The service name on Polaris, note the difference between this and the four-segment naming
-      ip: ${ip}                #Listening IP
-      port:${port}             #Listening port
+    - name: ${service_name}    # The service name on Polaris, note the difference between this and the four-segment naming
+      ip: ${ip}                # Listening IP
+      port:${port}             # Listening port
 ```
 register configuration
 ```registry yaml
@@ -222,10 +222,10 @@ plugins:
   registry:  #Service registration configuration
     polarismesh:  #Polaris service instance registration plugin
       service:
-         - name: ${service_name}          #The service name on Polaris
-           namespace: ${namespace}        #Namespace
-           token: ${token}                #Service token
-           metadata:                      #Metadata of the service instance
+         - name: ${service_name}          # The service name on Polaris
+           namespace: ${namespace}        # Namespace
+           token: ${token}                # Service token
+           metadata:                      # Metadata of the service instance
              key1
 ```
 
@@ -262,8 +262,8 @@ ret = trpc::naming::Unregister(registry_info);
 ```limiter yaml
 # Plugin configuration
 plugins:
-  limiter: #Rate limiting plugin configuration
-     polarismesh: #Polaris rate limiting plugin
+  limiter: # Rate limiting plugin configuration
+     polarismesh: # Polaris rate limiting plugin
        updateCallResult: false # Whether to report call results (used for dynamic quota adjustment), if needed, set to true
        mode: global  # Rate limiting mode, global or local, where global mode shares quotas among all instances, local mode does not share quotas (no need to access the backend quota server for dynamic calculation of remaining quotas)
        rateLimitCluster:  # Rate limiting statistics cluster, required, specific configuration reference Polaris official rate limiting documentation (please replace xxx with the rate limiting statistics cluster you are accessing)

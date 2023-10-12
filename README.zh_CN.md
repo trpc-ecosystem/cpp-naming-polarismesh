@@ -110,12 +110,12 @@ client:
 plugins:
   selector:
     polarismesh:
-	  dynamic_weight:
-	    isOpenDynamicWeight: true #设置为true
-	  consumer:
-		loadbalancer:
-		  enableDynamicWeight: true #设置为true
-		  type: weightedRandom #负载均衡类型(虽然具体使用的负载均衡算法是dynamicWeight，但这里要填基本的权重随机算法weightedRandom)
+      dynamic_weight:
+        isOpenDynamicWeight: true # 设置为true
+      consumer:
+        loadbalancer:
+          enableDynamicWeight: true # 设置为true
+          type: weightedRandom # 负载均衡类型(虽然具体使用的负载均衡算法是dynamicWeight，但这里要填基本的权重随机算法weightedRandom)
 ```
 **step2：**客户端调用
 ```
@@ -131,11 +131,11 @@ client:
 ```selector yaml
 #插件配置
 plugins:
-  selector:  #路由选择配置
-    polarismesh:  #北极星路由选择插件
+  selector:  # 路由选择配置
+    polarismesh:  # 北极星路由选择插件
      consumer:
-       circuitBreaker:  #熔断相关配置
-	 enable: true   #是否开启熔断
+       circuitBreaker:  # 熔断相关配置
+	 enable: true   # 是否开启熔断
 	 ...
 ```
 熔断的触发及恢复条件如下：
@@ -154,8 +154,8 @@ plugins:
 ```registry yaml
 #插件配置
 plugins:
-  registry:  #服务注册配置
-    polarismesh:  #北极星服务实例注册插件
+  registry:  # 服务注册配置
+    polarismesh:  # 北极星服务实例注册插件
 ```
 
 ## 心跳上报功能
@@ -168,7 +168,7 @@ plugins:
 ```global yaml
 #全局配置
 global:
-  namespace: ${namespace}    #命名空间，如正式Production和非正式Development
+  namespace: ${namespace}    # 命名空间，如正式Production和非正式Development
 ```
 在server配置中，需要!!#ff0000 **添加配置registry_name为polaris**!!。
 ```server yaml
@@ -176,22 +176,22 @@ global:
 server:
   registry_name: polaris
   service:
-    - name: ${service_name}    #服务在北极星上的服务名，注意区分这里和四段式命名的区别
-      ip: ${ip}                #监听ip
-      nic: ${nic}              #监听网卡名，用于通过网卡名获取ip(优先用ip，没有则用网卡获取ip)
-      port:${port}             #监听port
+    - name: ${service_name}    # 服务在北极星上的服务名，注意区分这里和四段式命名的区别
+      ip: ${ip}                # 监听ip
+      nic: ${nic}              # 监听网卡名，用于通过网卡名获取ip(优先用ip，没有则用网卡获取ip)
+      port:${port}             # 监听port
 ```
 在registry插件(plugins/registry)配置中，配置北极星心跳上报所需的信息(服务命名空间、服务名、token、instanceid)。
 ```registry yaml
 #插件配置
 plugins:
-  registry:  #服务注册配置
-    polarismesh:  #北极星服务实例注册插件
+  registry:  # 服务注册配置
+    polarismesh:  # 北极星服务实例注册插件
       service:
-        - instance_id: ${instance_id}    #服务实例的唯一id，不配置时框架采用server配置中同名service的ip:port（选填）
-          name: ${service_name}          #服务在北极星上的服务名（与前文的server/service/- name 一致）
-          namespace: ${namespace}        #命名空间
-          token: ${token}                #服务token
+        - instance_id: ${instance_id}    # 服务实例的唯一id，不配置时框架采用server配置中同名service的ip:port（选填）
+          name: ${service_name}          # 服务在北极星上的服务名（与前文的server/service/- name 一致）
+          namespace: ${namespace}        # 命名空间
+          token: ${token}                # 服务token
 ```
 ## 如何注册服务实例
 
@@ -205,26 +205,26 @@ server配置
 ```server yaml
 #服务端配置
 server:
-  registry_name: polaris       #指定向哪个名字服务进行注册
-  enable_self_register: true   #开框架的自注册功能
+  registry_name: polaris       # 指定向哪个名字服务进行注册
+  enable_self_register: true   # 开框架的自注册功能
   service:
-    - name: ${service_name}    #服务在北极星上的服务名，注意区分这里和四段式命名的区别
-      ip: ${ip}                #监听ip
-      port:${port}             #监听port
+    - name: ${service_name}    # 服务在北极星上的服务名，注意区分这里和四段式命名的区别
+      ip: ${ip}                # 监听ip
+      port:${port}             # 监听port
 ```
 register配置
 ```registry yaml
 #插件配置
 plugins:
-  registry:  #服务注册配置
-    polarismesh:  #北极星服务实例注册插件
+  registry:  # 服务注册配置
+    polarismesh:  # 北极星服务实例注册插件
       service:
-         - name: ${service_name}          #服务在北极星上的服务名
-           namespace: ${namespace}        #命名空间
-           token: ${token}                #服务token
-           metadata:                      #服务实例的metadata
-             key1: value1
-             key2: value2
+        - name: ${service_name}          # 服务在北极星上的服务名
+          namespace: ${namespace}        # 命名空间
+          token: ${token}                # 服务token
+          metadata:                      # 服务实例的metadata
+            key1: value1
+            key2: value2
 ```
 
 ### 通过插件接口注册
@@ -261,8 +261,8 @@ ret = trpc::naming::Unregister(registry_info);
 ```limiter yaml
 #插件配置
 plugins:
-  limiter: #限流插件配置
-    polarismesh: #北极星限流插件
+  limiter: # 限流插件配置
+    polarismesh: # 北极星限流插件
       updateCallResult: false # 是否需要上报调用情况（用于动态调整配额），如果需要的话需要配为true
       mode: global  # 限流模式，global或local，其中global模式的话配额所有实例共享，local的话配额不共享(不需要访问后端配额服务器动态计算剩余配额)
       rateLimitCluster:  # 限流统计集群，必填，具体配置参考北极星官方限流文档(请将xxx替换成接入的限流统计集群)
