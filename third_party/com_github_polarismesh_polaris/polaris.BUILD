@@ -52,7 +52,7 @@ cc_library(
 )
 
 cc_library(
-    name = "polaris_api",
+    name = "polarismesh_api",
     srcs = glob([
         "polaris/**/*.cpp",
         "polaris/**/*.h",
@@ -80,16 +80,16 @@ cc_library(
 )
 
 alias(
-    name = "polaris_api_fork",
-    actual = ":polaris_api",
+    name = "polarismesh_api_fork",
+    actual = ":polarismesh_api",
     visibility = [
         "//visibility:public",
     ],
 )
 
 alias(
-    name = "polaris_api_trpc",
-    actual = ":polaris_api",
+    name = "polarismesh_api_trpc",
+    actual = ":polarismesh_api",
     visibility = [
         "//visibility:public",
     ],

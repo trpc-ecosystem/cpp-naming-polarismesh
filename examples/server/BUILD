@@ -22,9 +22,9 @@ cc_binary(
         ":helloworld_proto",
         "@com_github_fmtlib_fmt//:fmtlib",
         "@trpc_cpp//trpc/common:trpc_app",
-        "//trpc/naming/polarismesh:polaris_limiter_api",
-        "//trpc/naming/polarismesh:polaris_selector_api",
-        "//trpc/naming/polarismesh:polaris_registry_api",
+        "//trpc/naming/polarismesh:polarismesh_limiter_api",
+        "//trpc/naming/polarismesh:polarismesh_selector_api",
+        "//trpc/naming/polarismesh:polarismesh_registry_api",
     ],
 )
 

@@ -21,19 +21,19 @@
 #include "trpc/filter/filter.h"
 #include "trpc/naming/limiter.h"
 #include "trpc/naming/limiter_factory.h"
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 #include "trpc/server/server_context.h"
 
 namespace trpc {
 
 /// @brief polarismesh server limited flower Filter
-class PolarisLimiterServerFilter : public MessageServerFilter {
+class PolarisMeshLimiterServerFilter : public MessageServerFilter {
  public:
-  PolarisLimiterServerFilter() = default;
+  PolarisMeshLimiterServerFilter() = default;
 
-  ~PolarisLimiterServerFilter() override = default;
+  ~PolarisMeshLimiterServerFilter() override = default;
 
-  std::string Name() override { return "polaris_limiter"; }
+  std::string Name() override { return "polarismesh_limiter"; }
 
   int Init();
 
@@ -58,6 +58,6 @@ class PolarisLimiterServerFilter : public MessageServerFilter {
   bool update_call_result_ = false;
 };
 
-using PolarisLimiterServerFilterPtr = RefPtr<PolarisLimiterServerFilter>;
+using PolarisMeshLimiterServerFilterPtr = RefPtr<PolarisMeshLimiterServerFilter>;
 
 }  // namespace trpc

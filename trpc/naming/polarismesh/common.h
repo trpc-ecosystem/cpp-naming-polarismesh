@@ -25,7 +25,7 @@
 #include "trpc/common/config/trpc_config.h"
 #include "trpc/common/status.h"
 #include "trpc/naming/common/common_defs.h"
-#include "trpc/naming/polarismesh/config/polaris_naming_conf.h"
+#include "trpc/naming/polarismesh/config/polarismesh_naming_conf.h"
 
 namespace trpc {
 
@@ -173,7 +173,7 @@ inline int GetIntFromMetadata(const std::map<std::string, std::string>& metadata
 }
 
 /// @brief polarismesh Service Example Registration Information Structure
-struct PolarisRegistryInfo {
+struct PolarisMeshRegistryInfo {
   /// The flowing number is used to track the user's request, optional, default 0
   uint64_t flow_id;
   /// Service name, optional, default empty, but in the case of empty, if the SID information is empty, the error will
@@ -213,11 +213,12 @@ struct PolarisRegistryInfo {
 
 /// @brief transformTheServiceEntityOfTheServiceEntryOfTheUpperFrameOfTheFrame
 /// @param[in] registry_info theServiceEntityRegistrationInformationBodyIntroducedInTheUpperLayerOfTheFramework
-/// @param[out] polaris_info polarismeshServiceExampleRegistrationInformationStructure
-inline void ConvertToPolarisRegistryInfo(const RegistryInfo& registry_info, PolarisRegistryInfo& polaris_info) {
-  polaris_info.service_name = registry_info.name;
-  polaris_info.host = registry_info.host;
-  polaris_info.port = registry_info.port;
+/// @param[out] polarismesh_info polarismeshServiceExampleRegistrationInformationStructure
+inline void ConvertToPolarisMeshRegistryInfo(const RegistryInfo& registry_info,
+                                             PolarisMeshRegistryInfo& polarismesh_info) {
+  polarismesh_info.service_name = registry_info.name;
+  polarismesh_info.host = registry_info.host;
+  polarismesh_info.port = registry_info.port;
   auto& metadata = registry_info.meta;
 
   for (auto& var : metadata) {
@@ -228,19 +229,19 @@ inline void ConvertToPolarisRegistryInfo(const RegistryInfo& registry_info, Pola
       continue;
     }
 
-    polaris_info.metadata[key] = var.second;
+    polarismesh_info.metadata[key] = var.second;
   }
 
   // thisMethodFocusesOnTheConversionOfIpportAndMetadataInformationNamespaceHasNotBeenConvertedThere
-  polaris_info.service_token = GetStringFromMetadata(metadata, "token", "");
-  polaris_info.instance_id = GetStringFromMetadata(metadata, "instance_id", "");
-  polaris_info.protocol = GetStringFromMetadata(metadata, "protocol", "");
-  polaris_info.weight = GetIntFromMetadata(metadata, "weight", 100);
-  polaris_info.priority = GetIntFromMetadata(metadata, "priority", 0);
-  polaris_info.version = GetStringFromMetadata(metadata, "version", "");
-  polaris_info.enable_health_check = GetIntFromMetadata(metadata, "enable_health_check", 0);
-  polaris_info.health_check_type = GetIntFromMetadata(metadata, "health_check_type", 0);
-  polaris_info.ttl = GetIntFromMetadata(metadata, "ttl", 0);
+  polarismesh_info.service_token = GetStringFromMetadata(metadata, "token", "");
+  polarismesh_info.instance_id = GetStringFromMetadata(metadata, "instance_id", "");
+  polarismesh_info.protocol = GetStringFromMetadata(metadata, "protocol", "");
+  polarismesh_info.weight = GetIntFromMetadata(metadata, "weight", 100);
+  polarismesh_info.priority = GetIntFromMetadata(metadata, "priority", 0);
+  polarismesh_info.version = GetStringFromMetadata(metadata, "version", "");
+  polarismesh_info.enable_health_check = GetIntFromMetadata(metadata, "enable_health_check", 0);
+  polarismesh_info.health_check_type = GetIntFromMetadata(metadata, "health_check_type", 0);
+  polarismesh_info.ttl = GetIntFromMetadata(metadata, "ttl", 0);
 }
 
 /// @brief Is it the same to compare the serviceKey
@@ -256,7 +257,7 @@ inline bool ServiceKeyEqual(const polaris::ServiceKey& service_key1, const polar
 /// @brief Integrate all information in config into config.orig_selector_config
 ///        Follow -up can construct the Context of the Arctic SDK through Orig_selector_config
 /// @param config polarismesh plug -in configuration
-void SetPolarisSelectorConf(trpc::naming::PolarisNamingConfig& config);
+void SetPolarisMeshSelectorConf(trpc::naming::PolarisMeshNamingConfig& config);
 
 /// @brief The framework error code with the fuse of the whitening list is reported to the error code conversion on the
 /// fuse of the polarismesh

@@ -103,7 +103,7 @@ TEST(TrpcServerMetric, RunWithBadMetrics) {
 }
 
 TEST(TrpcServerMetric, RunWithRightMetrics) {
-  int ret = TrpcConfig::GetInstance()->Init("./trpc/naming/polarismesh/testing/polaris_test.yaml");
+  int ret = TrpcConfig::GetInstance()->Init("./trpc/naming/polarismesh/testing/polarismesh_test.yaml");
   EXPECT_EQ(0, ret);
 
   std::string content = "{enable: true}";
