@@ -1,5 +1,10 @@
 [中文](./README.zh_CN.md)
 
+[![LICENSE](https://img.shields.io/badge/license-Apache--2.0-green.svg)](https://github.com/trpc-ecosystem/cpp-naming-polarismesh/blob/main/LICENSE)
+[![Releases](https://img.shields.io/github/release/trpc-ecosystem/cpp-naming-polarismesh.svg?style=flat-square)](https://github.com/trpc-ecosystem/cpp-naming-polarismesh/releases)
+[![Build Status](https://github.com/trpc-ecosystem/cpp-naming-polarismesh/actions/workflows/ci.yml/badge.svg)](https://github.com/trpc-ecosystem/cpp-naming-polarismesh/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/trpc-ecosystem/cpp-naming-polarismesh/branch/main/graph/badge.svg)](https://app.codecov.io/gh/trpc-ecosystem/cpp-naming-polarismesh/tree/main)
+
 # Overview
 [PolarisMesh](https://polarismesh.cn) is a service governance platform developed by Tencent in collaboration with the open-source community. The tRPC-Cpp Polaris plugin encapsulates the [official Polaris SDK](https://github.com/polarismesh/polaris-cpp).
 The tRPC-Cpp Polaris plugin is divided into two types:**Polaris routing selection plugin** and **Polaris service instance registration plugin**, The Polaris routing selection plugin provides service discovery functionality, and the Polaris service instance registration plugin provides service instance registration and heartbeat reporting functionality.

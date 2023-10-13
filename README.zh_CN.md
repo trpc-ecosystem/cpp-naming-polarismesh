@@ -1,5 +1,10 @@
 [English](./README.md)
 
+[![LICENSE](https://img.shields.io/badge/license-Apache--2.0-green.svg)](https://github.com/trpc-ecosystem/cpp-naming-polarismesh/blob/main/LICENSE)
+[![Releases](https://img.shields.io/github/release/trpc-ecosystem/cpp-naming-polarismesh.svg?style=flat-square)](https://github.com/trpc-ecosystem/cpp-naming-polarismesh/releases)
+[![Build Status](https://github.com/trpc-ecosystem/cpp-naming-polarismesh/actions/workflows/ci.yml/badge.svg)](https://github.com/trpc-ecosystem/cpp-naming-polarismesh/actions/workflows/ci.yml)
+[![Coverage](https://codecov.io/gh/trpc-ecosystem/cpp-naming-polarismesh/branch/main/graph/badge.svg)](https://app.codecov.io/gh/trpc-ecosystem/cpp-naming-polarismesh/tree/main)
+
 # 前言
 [北极星（PolarisMesh）](https://polarismesh.cn) 是腾讯开源协同共建的服务治理平台，tRPC-Cpp北极星插件将[北极星官方sdk](https://github.com/polarismesh/polaris-cpp) 进行了封装。
 tRPC-Cpp北极星插件分为**北极星路由选择插件**和**北极星服务实例注册插件**两种，其中北极星路由选择插件提供服务发现功能，北极星服务实例注册插件提供服务实例注册，心跳上报功能。
