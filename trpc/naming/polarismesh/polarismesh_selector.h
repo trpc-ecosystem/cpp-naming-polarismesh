@@ -138,7 +138,7 @@ void SetFilterMetadataOfNaming(T& context, const std::map<std::string,
 /// @param context The context from which to retrieve the metadata
 /// @return A map containing the metadata, or an empty map if the metadata is not found
 template <typename T>
-const std::map<std::string, std::string>* GetFilterMetadataOfNaming(T& context, PolarisMetadataType type) {
+std::unique_ptr<std::map<std::string, std::string>> GetFilterMetadataOfNaming(T& context, PolarisMetadataType type) {
   const std::string key = "metadata_" + std::to_string(static_cast<int>(type));
 
   auto* data_map = context->template GetFilterData<std::unordered_map<std::string,
@@ -148,11 +148,11 @@ const std::map<std::string, std::string>* GetFilterMetadataOfNaming(T& context, 
     if (it != data_map->end()) {
       rapidjson::Document json_metadata;
       json_metadata.Parse(it->second.c_str());
-      std::map<std::string, std::string> metadata_map;
+      auto metadata_map_ptr = std::make_unique<std::map<std::string, std::string>>();  // Create a new unique_ptr
       for (auto& m : json_metadata.GetObject()) {
-        metadata_map.emplace(m.name.GetString(), m.value.GetString());
+        metadata_map_ptr->emplace(m.name.GetString(), m.value.GetString());
       }
-      return metadata_map.size() > 0 ? &metadata_map : nullptr;
+      return metadata_map_ptr->size() > 0 ? std::move(metadata_map_ptr) : nullptr;
     }
   }
 

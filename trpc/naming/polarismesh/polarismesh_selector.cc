@@ -158,10 +158,10 @@ int PolarisMeshSelector::SelectImpl(const SelectorInfo* info, polaris::Instances
   request.SetTimeout(timeout_);
 
   // Fill in metadata
-  auto* meta = naming::polarismesh::GetFilterMetadataOfNaming(info->context,
-                                                              PolarisMetadataType::kPolarisDstMetaRouteLable);
-  if (meta) {
-    request.SetMetadata(*const_cast<std::map<std::string, std::string>*>(meta));
+  auto meta = naming::polarismesh::GetFilterMetadataOfNaming(info->context,
+                                                             PolarisMetadataType::kPolarisDstMetaRouteLable);
+  if (meta != nullptr) {
+    request.SetMetadata(*(meta.get()));
   }
 
   // If it is a backup strategy, you need to set the number of Backup nodes
@@ -288,10 +288,10 @@ int PolarisMeshSelector::SelectBatch(const SelectorInfo* info, std::vector<TrpcE
     discovery_req.SetSourceService(source_service_info);
 
     // Fill in metadata
-    auto* meta = naming::polarismesh::GetFilterMetadataOfNaming(info->context,
-                                                                PolarisMetadataType::kPolarisDstMetaRouteLable);
+    auto meta = naming::polarismesh::GetFilterMetadataOfNaming(info->context,
+                                                               PolarisMetadataType::kPolarisDstMetaRouteLable);
     if (meta) {
-      discovery_req.SetMetadata(*const_cast<std::map<std::string, std::string>*>(meta));
+      discovery_req.SetMetadata(*(meta.get()));
     }
 
     polaris::ReturnCode ret = consumer_api_->GetInstances(discovery_req, discovery_rsp);
@@ -359,10 +359,10 @@ int PolarisMeshSelector::ReportInvokeResult(const InvokeResult* result) {
     result_req.SetLocalityAwareInfo(locality_aware_info);
   }
 
-  auto* circuit_breaker_lables = naming::polarismesh::GetFilterMetadataOfNaming(
-                                    result->context, PolarisMetadataType::kPolarisCircuitBreakLable);
+  auto circuit_breaker_lables = naming::polarismesh::GetFilterMetadataOfNaming(
+      result->context, PolarisMetadataType::kPolarisCircuitBreakLable);
   if (circuit_breaker_lables) {
-    result_req.SetLabels(*circuit_breaker_lables);
+    result_req.SetLabels(*(circuit_breaker_lables.get()));
   }
 
   int ret = consumer_api_->UpdateServiceCallResult(result_req);
@@ -388,10 +388,10 @@ void PolarisMeshSelector::FillMetadataOfSourceServiceInfo(const SelectorInfo* in
   const auto& context = info->context;
   auto& metadata = source_service_info.metadata_;
 
-  auto* filter_meta = naming::polarismesh::GetFilterMetadataOfNaming(info->context,
-                                                                     PolarisMetadataType::kPolarisRuleRouteLable);
+  auto filter_meta = naming::polarismesh::GetFilterMetadataOfNaming(info->context,
+                                                                    PolarisMetadataType::kPolarisRuleRouteLable);
   if (filter_meta) {
-    metadata = *filter_meta;
+    metadata = *(filter_meta.get());
   }
 
   // Set the ENV of the main party as the ENV in the frame configuration
