@@ -18,16 +18,17 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
+
 #include "polaris/api/consumer_api.h"
 #include "polaris/consumer.h"
 #include "polaris/context.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
-#include "readers_writer_data.h"
 #include "trpc/naming/common/common_defs.h"
 #include "trpc/naming/polarismesh/common.h"
+#include "trpc/naming/polarismesh/readers_writer_data.h"
 #include "trpc/naming/selector.h"
 
 namespace trpc {
@@ -54,8 +55,8 @@ uint32_t GetPolarisMeshSelectorPluginID();
 /// @param key_value_pairs A variadic list of key-value pairs to set in the context's filter data.
 template <typename T, typename... Args>
 void SetSelectorExtendInfo(T& context, Args&&... key_value_pairs) {
-  auto* data_map = context->template GetFilterData<std::unordered_map<std::string,
-                                                                      std::string>>(GetPolarisMeshSelectorPluginID());
+  auto* data_map =
+      context->template GetFilterData<std::unordered_map<std::string, std::string>>(GetPolarisMeshSelectorPluginID());
   if (!data_map) {
     std::unordered_map<std::string, std::string> new_data_map;
     (new_data_map.emplace(std::forward<Args>(key_value_pairs)), ...);
@@ -82,8 +83,8 @@ void SetSelectorExtendInfo(T& context, Args&&... key_value_pairs) {
 /// @return The value of the specified property if found, or an empty string if not found.
 template <typename T>
 std::string GetSelectorExtendInfo(T& context, const std::string& key) {
-  auto* data_map = context->template GetFilterData<std::unordered_map<std::string,
-                                                                      std::string>>(GetPolarisMeshSelectorPluginID());
+  auto* data_map =
+      context->template GetFilterData<std::unordered_map<std::string, std::string>>(GetPolarisMeshSelectorPluginID());
   if (data_map) {
     auto it = data_map->find(key);
     if (it != data_map->end()) {
@@ -99,12 +100,12 @@ std::string GetSelectorExtendInfo(T& context, const std::string& key) {
 /// @param type The PolarisMetadataType index to set the metadata for
 /// @param metadata_map The metadata map to set in the context's filter data
 template <typename T>
-void SetFilterMetadataOfNaming(T& context, const std::map<std::string,
-                                                          std::string>& metadata_map,  PolarisMetadataType type) {
+void SetFilterMetadataOfNaming(T& context, const std::map<std::string, std::string>& metadata_map,
+                               PolarisMetadataType type) {
   const std::string key = "metadata_" + std::to_string(static_cast<int>(type));
 
-  auto* data_map = context->template GetFilterData<std::unordered_map<std::string,
-                                                                      std::string>>(GetPolarisMeshSelectorPluginID());
+  auto* data_map =
+      context->template GetFilterData<std::unordered_map<std::string, std::string>>(GetPolarisMeshSelectorPluginID());
   if (!data_map) {
     std::unordered_map<std::string, std::string> new_data_map;
 
@@ -138,21 +139,21 @@ void SetFilterMetadataOfNaming(T& context, const std::map<std::string,
 /// @param context The context from which to retrieve the metadata
 /// @return A map containing the metadata, or an empty map if the metadata is not found
 template <typename T>
-const std::map<std::string, std::string>* GetFilterMetadataOfNaming(T& context, PolarisMetadataType type) {
+std::unique_ptr<std::map<std::string, std::string>> GetFilterMetadataOfNaming(T& context, PolarisMetadataType type) {
   const std::string key = "metadata_" + std::to_string(static_cast<int>(type));
 
-  auto* data_map = context->template GetFilterData<std::unordered_map<std::string,
-                                                                      std::string>>(GetPolarisMeshSelectorPluginID());
+  auto* data_map =
+      context->template GetFilterData<std::unordered_map<std::string, std::string>>(GetPolarisMeshSelectorPluginID());
   if (data_map) {
     auto it = data_map->find(key);
     if (it != data_map->end()) {
       rapidjson::Document json_metadata;
       json_metadata.Parse(it->second.c_str());
-      std::map<std::string, std::string> metadata_map;
+      auto metadata_map_ptr = std::make_unique<std::map<std::string, std::string>>();  // Create a new unique_ptr
       for (auto& m : json_metadata.GetObject()) {
-        metadata_map.emplace(m.name.GetString(), m.value.GetString());
+        metadata_map_ptr->emplace(m.name.GetString(), m.value.GetString());
       }
-      return metadata_map.size() > 0 ? &metadata_map : nullptr;
+      return metadata_map_ptr->size() > 0 ? std::move(metadata_map_ptr) : nullptr;
     }
   }
 
@@ -204,17 +205,15 @@ class PolarisMeshSelector : public Selector {
 
   /// @brief Set framework error codes melting white list
   bool SetCircuitBreakWhiteList(const std::vector<int>& framework_retcodes) override;
-  
+
   /// @brief Setter function for plugin_config_
-  void SetPluginConfig(const naming::PolarisMeshNamingConfig& config) {
-    plugin_config_ = config;
-  }
+  void SetPluginConfig(const naming::PolarisMeshNamingConfig& config) { plugin_config_ = config; }
 
   /// @brief ServiceKey, the main tone
   /// @param[in] client_context_ptr Client context
   /// @param[out] service_key SERVICEKEY of the main tone
-  void GetSourceServiceKey(const ClientContextPtr& client_context_ptr,
-                           const std::any* extend_select_info, polaris::ServiceKey& service_key);
+  void GetSourceServiceKey(const ClientContextPtr& client_context_ptr, const std::any* extend_select_info,
+                           polaris::ServiceKey& service_key);
 
  private:
   // Get the specific implementation of the service node from the SDK GetoneInstance interface
@@ -229,12 +228,11 @@ class PolarisMeshSelector : public Selector {
 
   // Tries to get the value for the given field_name from the context.
   // If the value is not found in the context, it tries to get it from the extend_select_info.
-  std::string GetValueFromContextOrExtend(const ClientContextPtr& context,
-                                          const std::any* extend_select_info, const std::string& field_name);
+  std::string GetValueFromContextOrExtend(const ClientContextPtr& context, const std::any* extend_select_info,
+                                          const std::string& field_name);
 
   // Tries to get the value for the given "namespace" from the context.
-  std::string GetNamespaceFromContextOrExtend(const ClientContextPtr& context,
-                                                               const std::any* extend_select_info);
+  std::string GetNamespaceFromContextOrExtend(const ClientContextPtr& context, const std::any* extend_select_info);
 
  private:
   bool init_{false};
