@@ -39,12 +39,9 @@ namespace naming::polarismesh {
 
 uint32_t g_polarismesh_selector_plugin_id;
 
-uint32_t GetPolarisMeshSelectorPluginID() {
-  return g_polarismesh_selector_plugin_id;
-}
+uint32_t GetPolarisMeshSelectorPluginID() { return g_polarismesh_selector_plugin_id; }
 
 }  // namespace naming::polarismesh
-
 
 // Set the transparent information of the Selector-META-prefix to the polaris Routing rule
 void SetTransSelectorMeta(const ClientContextPtr& context, std::map<std::string, std::string>* metadata) {
@@ -83,9 +80,9 @@ int PolarisMeshSelector::Init() noexcept {
   }
   polarismesh_context_ = trpc::TrpcShareContext::GetInstance()->GetPolarisContext();
   consumer_api_ = std::unique_ptr<polaris::ConsumerApi>(polaris::ConsumerApi::Create(polarismesh_context_.get()));
-//  polaris::GetLogger()->SetLogLevel(polaris::kDebugLogLevel);
-//  auto polarismesh_context_ = polaris::ConsumerApi::CreateWithDefaultFile();
-  //consumer_api_ = std::unique_ptr<polaris::ConsumerApi>(polarismesh_context_);
+  //  polaris::GetLogger()->SetLogLevel(polaris::kDebugLogLevel);
+  //  auto polarismesh_context_ = polaris::ConsumerApi::CreateWithDefaultFile();
+  // consumer_api_ = std::unique_ptr<polaris::ConsumerApi>(polarismesh_context_);
   if (!consumer_api_) {
     TRPC_FMT_ERROR("Create ConsumerApi failed");
     return -1;
@@ -136,11 +133,10 @@ int PolarisMeshSelector::SelectImpl(const SelectorInfo* info, polaris::Instances
     request.SetHashString(hash_key);
     // Set up a copy indexy
     uint64_t replicate_index = trpc::util::Convert<uint64_t, std::string>(
-                                  GetValueFromContextOrExtend(info->context, info->extend_select_info, "replicate_index"));
+        GetValueFromContextOrExtend(info->context, info->extend_select_info, "replicate_index"));
     request.SetReplicateIndex(replicate_index);
     // polarismesh bug, use SethashKey in the early stages
-    uint64_t u64_hash_key = trpc::util::Convert<uint64_t, std::string>(
-                                hash_key);
+    uint64_t u64_hash_key = trpc::util::Convert<uint64_t, std::string>(hash_key);
     request.SetHashKey(u64_hash_key);
   }
 
@@ -158,10 +154,10 @@ int PolarisMeshSelector::SelectImpl(const SelectorInfo* info, polaris::Instances
   request.SetTimeout(timeout_);
 
   // Fill in metadata
-  auto* meta = naming::polarismesh::GetFilterMetadataOfNaming(info->context,
-                                                              PolarisMetadataType::kPolarisDstMetaRouteLable);
-  if (meta) {
-    request.SetMetadata(*const_cast<std::map<std::string, std::string>*>(meta));
+  auto meta =
+      naming::polarismesh::GetFilterMetadataOfNaming(info->context, PolarisMetadataType::kPolarisDstMetaRouteLable);
+  if (meta != nullptr) {
+    request.SetMetadata(*(meta.get()));
   }
 
   // If it is a backup strategy, you need to set the number of Backup nodes
@@ -204,7 +200,8 @@ int PolarisMeshSelector::Select(const SelectorInfo* info, TrpcEndpointInfo* endp
     ConvertPolarisInstance(instances[0], *endpoint, true);
   }
   TRPC_FMT_DEBUG("Select result {}:{}, id:{}, service_name:{}, service_namespace:{}", endpoint->host, endpoint->port,
-                 endpoint->id, info->name, GetValueFromContextOrExtend(info->context, info->extend_select_info, "namespace"));
+                 endpoint->id, info->name,
+                 GetValueFromContextOrExtend(info->context, info->extend_select_info, "namespace"));
 
   return 0;
 }
@@ -288,10 +285,10 @@ int PolarisMeshSelector::SelectBatch(const SelectorInfo* info, std::vector<TrpcE
     discovery_req.SetSourceService(source_service_info);
 
     // Fill in metadata
-    auto* meta = naming::polarismesh::GetFilterMetadataOfNaming(info->context,
-                                                                PolarisMetadataType::kPolarisDstMetaRouteLable);
+    auto meta =
+        naming::polarismesh::GetFilterMetadataOfNaming(info->context, PolarisMetadataType::kPolarisDstMetaRouteLable);
     if (meta) {
-      discovery_req.SetMetadata(*const_cast<std::map<std::string, std::string>*>(meta));
+      discovery_req.SetMetadata(*(meta.get()));
     }
 
     polaris::ReturnCode ret = consumer_api_->GetInstances(discovery_req, discovery_rsp);
@@ -354,15 +351,15 @@ int PolarisMeshSelector::ReportInvokeResult(const InvokeResult* result) {
   result_req.SetDelay(result->cost_time);
   // load balancing algorithm Info
   uint64_t locality_aware_info = trpc::util::Convert<uint64_t, std::string>(
-                                    GetValueFromContextOrExtend(result->context, nullptr, "locality_aware_info"));
+      GetValueFromContextOrExtend(result->context, nullptr, "locality_aware_info"));
   if (locality_aware_info != 0) {
     result_req.SetLocalityAwareInfo(locality_aware_info);
   }
 
-  auto* circuit_breaker_lables = naming::polarismesh::GetFilterMetadataOfNaming(
-                                    result->context, PolarisMetadataType::kPolarisCircuitBreakLable);
+  auto circuit_breaker_lables =
+      naming::polarismesh::GetFilterMetadataOfNaming(result->context, PolarisMetadataType::kPolarisCircuitBreakLable);
   if (circuit_breaker_lables) {
-    result_req.SetLabels(*circuit_breaker_lables);
+    result_req.SetLabels(*(circuit_breaker_lables.get()));
   }
 
   int ret = consumer_api_->UpdateServiceCallResult(result_req);
@@ -384,14 +381,14 @@ bool PolarisMeshSelector::SetCircuitBreakWhiteList(const std::vector<int>& frame
 }
 
 void PolarisMeshSelector::FillMetadataOfSourceServiceInfo(const SelectorInfo* info,
-                                                      polaris::ServiceInfo& source_service_info) {
+                                                          polaris::ServiceInfo& source_service_info) {
   const auto& context = info->context;
   auto& metadata = source_service_info.metadata_;
 
-  auto* filter_meta = naming::polarismesh::GetFilterMetadataOfNaming(info->context,
-                                                                     PolarisMetadataType::kPolarisRuleRouteLable);
+  auto filter_meta =
+      naming::polarismesh::GetFilterMetadataOfNaming(info->context, PolarisMetadataType::kPolarisRuleRouteLable);
   if (filter_meta) {
-    metadata = *filter_meta;
+    metadata = *(filter_meta.get());
   }
 
   // Set the ENV of the main party as the ENV in the frame configuration
@@ -407,19 +404,19 @@ void PolarisMeshSelector::FillMetadataOfSourceServiceInfo(const SelectorInfo* in
 
   // Set the main information of the main party
   metadata[polaris::SetDivisionServiceRouter::enable_set_force] =
-                                                     GetValueFromContextOrExtend(info->context, info->extend_select_info, "enable_set_force");
+      GetValueFromContextOrExtend(info->context, info->extend_select_info, "enable_set_force");
   TRPC_FMT_DEBUG("Enable set force, service_name:{}", info->name);
 
   if (!GetValueFromContextOrExtend(info->context, info->extend_select_info, "callee_set_name").empty()) {
     metadata[polaris::constants::kRouterRequestSetNameKey] =
         GetValueFromContextOrExtend(info->context, info->extend_select_info, "callee_set_name");
     TRPC_FMT_DEBUG("Add source setname to metadata, CalleeSetName:{} service_name:{}",
-                        GetValueFromContextOrExtend(info->context, info->extend_select_info, "callee_set_name"), info->name);
+                   GetValueFromContextOrExtend(info->context, info->extend_select_info, "callee_set_name"), info->name);
   }
 }
 
 void PolarisMeshSelector::GetSourceServiceKey(const ClientContextPtr& client_context_ptr,
-                                          const std::any* extend_select_info, polaris::ServiceKey& service_key) {
+                                              const std::any* extend_select_info, polaris::ServiceKey& service_key) {
   service_key.name_ = client_context_ptr->GetCallerName();
   auto& global_namespace = TrpcConfig::GetInstance()->GetGlobalConfig().env_namespace;
   if (!global_namespace.empty()) {
@@ -428,10 +425,11 @@ void PolarisMeshSelector::GetSourceServiceKey(const ClientContextPtr& client_con
     service_key.namespace_ = GetNamespaceFromContextOrExtend(client_context_ptr, extend_select_info);
   }
 
-  return ;
+  return;
 }
 
-std::string PolarisMeshSelector::ParseExtendSelectInfo(const std::any* extend_select_info, const std::string& field_name) {
+std::string PolarisMeshSelector::ParseExtendSelectInfo(const std::any* extend_select_info,
+                                                       const std::string& field_name) {
   if (extend_select_info == nullptr) {
     return "";
   }
@@ -447,8 +445,7 @@ std::string PolarisMeshSelector::ParseExtendSelectInfo(const std::any* extend_se
       return it->second;
     }
   } catch (const std::bad_any_cast& e) {
-    TRPC_FMT_ERROR("Failed to cast extend_select_info to std::unordered_map<std::string, std::string>: {}",
-                   e.what());
+    TRPC_FMT_ERROR("Failed to cast extend_select_info to std::unordered_map<std::string, std::string>: {}", e.what());
   }
 
   // If the field is not found or the conversion fails, return an empty string
@@ -456,7 +453,8 @@ std::string PolarisMeshSelector::ParseExtendSelectInfo(const std::any* extend_se
 }
 
 std::string PolarisMeshSelector::GetValueFromContextOrExtend(const ClientContextPtr& context,
-                                                          const std::any* extend_select_info, const std::string& field_name) {
+                                                             const std::any* extend_select_info,
+                                                             const std::string& field_name) {
   std::string value = naming::polarismesh::GetSelectorExtendInfo(context, field_name);
   if (value.empty()) {
     value = ParseExtendSelectInfo(extend_select_info, field_name);
